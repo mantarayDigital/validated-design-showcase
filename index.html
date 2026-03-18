@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validated — Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --emerald: #10b981;
+    --emerald-dark: #059669;
+    --shell-bg: #f8f9fa;
+    --shell-text: #1a1a2e;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+    background: var(--shell-bg);
+    color: var(--shell-text);
+  }
+
+  /* ── Slide Engine ── */
+  .deck {
+    width: 100%; height: 100%;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 2;
+  }
+
+  /* ── Dot Navigation ── */
+  .dots {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 10px;
+    z-index: 100;
+  }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.18);
+    border: none; cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .dot.active {
+    background: var(--emerald);
+    transform: scale(1.3);
+  }
+
+  /* ── Variant Chrome ── */
+  .variant-label {
+    position: absolute; top: 24px; left: 32px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    z-index: 20;
+    opacity: 0.7;
+  }
+
+  .variant-tabs {
+    position: absolute; top: 22px; right: 32px;
+    display: flex; gap: 6px;
+    z-index: 20;
+  }
+
+  .variant-tabs button {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .variant-tabs button.active {
+    background: var(--emerald);
+    border-color: var(--emerald);
+    color: #fff;
+  }
+
+  .sub-screen {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .sub-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes meshMove {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -40px) scale(1.05); }
+    50% { transform: translate(-20px, 20px) scale(0.97); }
+    75% { transform: translate(40px, 10px) scale(1.03); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  @keyframes blobPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    33% { transform: scale(1.08) rotate(2deg); }
+    66% { transform: scale(0.95) rotate(-1deg); }
+  }
+
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes goldShine {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .slide.active .anim-fade-up { animation: fadeUp 0.7s ease both; }
+  .slide.active .anim-fade-up-d1 { animation: fadeUp 0.7s 0.15s ease both; }
+  .slide.active .anim-fade-up-d2 { animation: fadeUp 0.7s 0.3s ease both; }
+  .slide.active .anim-fade-up-d3 { animation: fadeUp 0.7s 0.45s ease both; }
+  .slide.active .anim-fade-up-d4 { animation: fadeUp 0.7s 0.6s ease both; }
+  .slide.active .anim-fade-up-d5 { animation: fadeUp 0.7s 0.75s ease both; }
+  .slide.active .anim-scale-in { animation: scaleIn 0.6s ease both; }
+  .slide.active .anim-scale-d1 { animation: scaleIn 0.6s 0.1s ease both; }
+  .slide.active .anim-scale-d2 { animation: scaleIn 0.6s 0.2s ease both; }
+  .slide.active .anim-scale-d3 { animation: scaleIn 0.6s 0.3s ease both; }
+  .slide.active .anim-scale-d4 { animation: scaleIn 0.6s 0.4s ease both; }
+  .slide.active .anim-scale-d5 { animation: scaleIn 0.6s 0.5s ease both; }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 1 — INTRO
+     ══════════════════════════════════════════════════════ */
+  .intro-slide {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #f8f9fa 0%, #e8f5f0 50%, #f8f9fa 100%);
+  }
+
+  .intro-slide h1 {
+    font-size: clamp(48px, 6vw, 96px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .intro-slide h1 span {
+    background: linear-gradient(135deg, var(--emerald), #0d9488);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .intro-slide .subtitle {
+    font-size: clamp(16px, 1.8vw, 22px);
+    font-weight: 300;
+    color: #6b7280;
+    margin-bottom: 64px;
+  }
+
+  .preview-row {
+    display: flex; gap: 20px;
+    perspective: 800px;
+  }
+
+  .preview-card {
+    width: 200px; height: 130px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.35s, box-shadow 0.35s;
+    position: relative;
+  }
+
+  .preview-card:hover {
+    transform: translateY(-8px) scale(1.04);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+  }
+
+  .preview-card .pc-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 8px 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    color: #fff; font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .pc-gradient { background: linear-gradient(135deg, #0a0a1a, #134e4a, #0a0a1a); }
+  .pc-split { background: linear-gradient(90deg, #1a1a2e 50%, #fff 50%); }
+  .pc-brutalist { background: #fff; border: 3px solid #000; }
+  .pc-brutalist .pc-label { background: #FFE600; color: #000; }
+  .pc-warm { background: linear-gradient(135deg, #FFF8F0, #fecaca, #FFF8F0); }
+  .pc-editorial { background: #111; border: 1px solid #D4A853; }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 2 — VARIANT 1: GRADIENT MESH
+     ══════════════════════════════════════════════════════ */
+  .v1 { background: #0a0a1a; color: #fff; }
+  .v1 .variant-label { color: rgba(255,255,255,0.5); }
+  .v1 .variant-tabs button { color: rgba(255,255,255,0.7); }
+
+  .v1-mesh {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+
+  .v1-mesh .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.5;
+    animation: meshMove 12s ease-in-out infinite;
+  }
+
+  .v1-mesh .blob-1 {
+    width: 500px; height: 500px;
+    background: var(--emerald);
+    top: -10%; left: 20%;
+    animation-delay: 0s;
+  }
+
+  .v1-mesh .blob-2 {
+    width: 400px; height: 400px;
+    background: #8b5cf6;
+    bottom: -5%; right: 15%;
+    animation-delay: -4s;
+  }
+
+  .v1-mesh .blob-3 {
+    width: 350px; height: 350px;
+    background: #0d9488;
+    top: 40%; left: 50%;
+    animation-delay: -8s;
+  }
+
+  .v1-content {
+    position: relative; z-index: 5;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 60px;
+  }
+
+  .glass-card {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+  }
+
+  .v1-hero-headline {
+    font-size: clamp(40px, 5.5vw, 80px);
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.08;
+    letter-spacing: -2px;
+    max-width: 900px;
+    margin-bottom: 24px;
+  }
+
+  .v1-hero-sub {
+    font-size: 18px; font-weight: 300;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    margin-bottom: 48px;
+    max-width: 500px;
+  }
+
+  .glass-btn {
+    padding: 16px 48px;
+    border-radius: 60px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px; font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(16,185,129,0.4);
+    background: rgba(16,185,129,0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .glass-btn:hover {
+    background: rgba(16,185,129,0.3);
+    box-shadow: 0 0 40px rgba(16,185,129,0.2);
+  }
+
+  .v1-features {
+    display: flex; gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-top: 40px;
+  }
+
+  .v1-feat-card {
+    width: 320px; padding: 48px 36px;
+    text-align: center;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .v1-feat-card:nth-child(2) { animation-delay: -2s; }
+  .v1-feat-card:nth-child(3) { animation-delay: -4s; }
+
+  .v1-feat-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: rgba(16,185,129,0.15);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 24px;
+  }
+
+  .v1-feat-card h3 {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .v1-feat-card p {
+    font-size: 14px; line-height: 1.6;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .v1-cta-form {
+    padding: 64px 80px;
+    text-align: center;
+    max-width: 560px;
+  }
+
+  .v1-cta-form h2 {
+    font-size: 36px; font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .v1-cta-form p {
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 32px;
+  }
+
+  .v1-input-row {
+    display: flex; gap: 12px;
+  }
+
+  .v1-input-row input {
+    flex: 1; padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: #fff; font-family: 'Outfit'; font-size: 14px;
+    outline: none;
+  }
+
+  .v1-input-row input::placeholder { color: rgba(255,255,255,0.3); }
+
+  .v1-input-row button {
+    padding: 14px 32px;
+    border-radius: 12px;
+    background: var(--emerald);
+    border: none; color: #fff;
+    font-family: 'Outfit'; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.25s;
+  }
+
+  .v1-input-row button:hover { background: var(--emerald-dark); }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 3 — VARIANT 2: SPLIT SCREEN
+     ══════════════════════════════════════════════════════ */
+  .v2 { background: #fff; color: #1a1a2e; }
+  .v2 .variant-label { color: rgba(255,255,255,0.7); }
+  .v2 .variant-tabs button { color: #1a1a2e; border-color: rgba(26,26,46,0.2); }
+  .v2 .variant-tabs button.active { color: #fff; }
+
+  .v2-split {
+    display: flex; width: 100%; height: 100%;
+  }
+
+  .v2-left {
+    width: 50%; background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px 60px;
+  }
+
+  .v2-right {
+    width: 50%; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px 60px;
+  }
+
+  .v2-hero-text h2 {
+    font-size: clamp(36px, 4.5vw, 72px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.05;
+    letter-spacing: -2px;
+  }
+
+  .v2-hero-text h2 .em-text {
+    color: var(--emerald);
+  }
+
+  .v2-hero-text p {
+    color: rgba(255,255,255,0.5);
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 400px;
+  }
+
+  .v2-hero-text .v2-btn {
+    display: inline-block; margin-top: 32px;
+    padding: 16px 40px;
+    background: var(--emerald);
+    color: #fff; border-radius: 4px;
+    font-weight: 700; font-size: 14px;
+    letter-spacing: 1px; text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .v2-mockup {
+    width: 100%; max-width: 400px;
+    aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #e8f5f0, #d1fae5);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+  }
+
+  .v2-mockup-inner {
+    width: 80%; height: 85%;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    padding: 24px;
+  }
+
+  .v2-mockup-bar {
+    width: 60%; height: 8px;
+    background: #e5e7eb; border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  .v2-mockup-line {
+    width: 100%; height: 6px;
+    background: #f3f4f6; border-radius: 3px;
+    margin-bottom: 10px;
+  }
+
+  .v2-mockup-line.short { width: 70%; }
+  .v2-mockup-block {
+    width: 100%; height: 80px;
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    border-radius: 8px;
+    margin-top: 16px;
+  }
+
+  /* V2 How It Works */
+  .v2-steps {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+  }
+
+  .v2-step-row {
+    flex: 1; display: flex;
+  }
+
+  .v2-step-row:nth-child(even) { flex-direction: row-reverse; }
+
+  .v2-step-side {
+    width: 50%; display: flex;
+    align-items: center; justify-content: center;
+    padding: 40px 60px;
+  }
+
+  .v2-step-side.dark { background: #1a1a2e; color: #fff; }
+  .v2-step-side.light { background: #fff; color: #1a1a2e; }
+
+  .v2-step-num {
+    font-size: 80px; font-weight: 900;
+    color: var(--emerald);
+    opacity: 0.3; margin-right: 24px;
+    line-height: 1;
+  }
+
+  .v2-step-text h3 {
+    font-size: 24px; font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .v2-step-text p {
+    font-size: 14px; line-height: 1.5;
+    opacity: 0.6;
+  }
+
+  /* V2 CTA */
+  .v2-cta-band {
+    width: 100%; height: 100%;
+    background: var(--emerald);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 24px;
+  }
+
+  .v2-cta-band h2 {
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 900; color: #fff;
+    text-align: center; letter-spacing: -2px;
+  }
+
+  .v2-cta-band .v2-cta-btn {
+    padding: 18px 56px;
+    background: #fff; color: #1a1a2e;
+    border-radius: 4px;
+    font-weight: 800; font-size: 16px;
+    letter-spacing: 1px; text-transform: uppercase;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+
+  .v2-cta-band .v2-cta-btn:hover { transform: scale(1.05); }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 4 — VARIANT 3: NEO-BRUTALIST
+     ══════════════════════════════════════════════════════ */
+  .v3 { background: #fff; color: #000; }
+  .v3 .variant-label { color: #000; }
+  .v3 .variant-tabs button {
+    color: #000; border-color: #000; border-width: 2px;
+    border-radius: 0;
+  }
+  .v3 .variant-tabs button.active {
+    background: #FFE600; border-color: #000; color: #000;
+  }
+
+  .v3-hero-full {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px;
+    border: 8px solid #000;
+    position: relative;
+  }
+
+  .v3-hero-full::before {
+    content: '';
+    position: absolute; top: 20px; right: 20px;
+    width: 200px; height: 200px;
+    background: #FFE600;
+    z-index: 0;
+  }
+
+  .v3-hero-content {
+    position: relative; z-index: 1;
+    max-width: 900px;
+  }
+
+  .v3-hero-content h2 {
+    font-size: clamp(48px, 7vw, 110px);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    text-transform: uppercase;
+  }
+
+  .v3-hero-content h2 .highlight {
+    background: #FFE600;
+    padding: 0 12px;
+    display: inline;
+  }
+
+  .v3-hero-content p {
+    font-size: 18px; margin-top: 24px;
+    max-width: 500px; line-height: 1.5;
+    font-weight: 500;
+  }
+
+  .v3-brutal-btn {
+    display: inline-block; margin-top: 32px;
+    padding: 18px 48px;
+    background: #000; color: #fff;
+    font-family: 'Outfit'; font-size: 16px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 2px;
+    border: 3px solid #000;
+    box-shadow: 6px 6px 0 #000;
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .v3-brutal-btn:hover {
+    transform: translate(3px, 3px);
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  /* V3 Features */
+  .v3-features-grid {
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0; border: 8px solid #000;
+  }
+
+  .v3-feat-item {
+    padding: 48px 36px;
+    border-right: 4px solid #000;
+    border-bottom: 4px solid #000;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .v3-feat-item:nth-child(3) { border-right: none; }
+
+  .v3-feat-item::after {
+    content: '';
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 6px; left: 6px;
+    background: #FFE600;
+    z-index: -1;
+  }
+
+  .v3-feat-item h3 {
+    font-size: 28px; font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .v3-feat-item p {
+    font-size: 14px; line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .v3-feat-num {
+    font-size: 64px; font-weight: 900;
+    color: #FFE600;
+    line-height: 1;
+    margin-bottom: 16px;
+    -webkit-text-stroke: 2px #000;
+  }
+
+  /* V3 CTA */
+  .v3-cta-block {
+    width: 100%; height: 100%;
+    background: #FFE600;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    border: 8px solid #000;
+  }
+
+  .v3-cta-block h2 {
+    font-size: clamp(40px, 6vw, 90px);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .v3-cta-block .v3-brutal-btn {
+    background: #fff; color: #000;
+    font-size: 18px;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 5 — VARIANT 4: WARM ORGANIC
+     ══════════════════════════════════════════════════════ */
+  .v4 { background: #FFF8F0; color: #2d1f10; }
+  .v4 .variant-label { color: #a08060; }
+  .v4 .variant-tabs button {
+    color: #6b5240; border-color: rgba(160,128,96,0.25);
+  }
+  .v4 .variant-tabs button.active {
+    background: #f97066; border-color: #f97066; color: #fff;
+  }
+
+  .v4-hero {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .v4-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: blobPulse 10s ease-in-out infinite;
+  }
+
+  .v4-blob-1 {
+    width: 500px; height: 500px;
+    background: rgba(249,112,102,0.2);
+    top: 10%; left: 30%;
+  }
+
+  .v4-blob-2 {
+    width: 400px; height: 400px;
+    background: rgba(251,191,36,0.15);
+    bottom: 20%; right: 20%;
+    animation-delay: -3s;
+  }
+
+  .v4-hero-inner {
+    position: relative; z-index: 2;
+    text-align: center;
+    max-width: 700px;
+    padding: 0 40px;
+  }
+
+  .v4-hero-inner h2 {
+    font-family: Georgia, 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 68px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #2d1f10;
+    margin-bottom: 20px;
+  }
+
+  .v4-hero-inner p {
+    font-size: 18px; color: #8b7355;
+    line-height: 1.6;
+    margin-bottom: 36px;
+  }
+
+  .v4-btn {
+    display: inline-block;
+    padding: 16px 48px;
+    background: linear-gradient(135deg, #f97066, #fb923c);
+    color: #fff; border-radius: 60px;
+    font-family: 'Outfit'; font-size: 16px; font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 8px 32px rgba(249,112,102,0.3);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: pointer; border: none;
+  }
+
+  .v4-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(249,112,102,0.4);
+  }
+
+  /* V4 Trust/Testimonials */
+  .v4-trust {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .v4-trust::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: rgba(249,112,102,0.08);
+    border-radius: 50%;
+    top: -20%; right: -10%;
+    filter: blur(60px);
+  }
+
+  .v4-trust h2 {
+    font-family: Georgia, serif;
+    font-size: 36px; font-weight: 700;
+    margin-bottom: 48px;
+    position: relative; z-index: 2;
+  }
+
+  .v4-testimonials {
+    display: flex; gap: 28px;
+    position: relative; z-index: 2;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .v4-test-card {
+    width: 320px; padding: 36px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.04);
+  }
+
+  .v4-test-card .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px; color: #fff;
+  }
+
+  .v4-test-card p {
+    font-size: 15px; line-height: 1.7;
+    color: #6b5240;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  .v4-test-card .name {
+    font-size: 13px; font-weight: 700;
+    color: #2d1f10;
+  }
+
+  /* V4 CTA */
+  .v4-cta-section {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+
+  .v4-cta-blob {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: linear-gradient(135deg, rgba(249,112,102,0.15), rgba(251,191,36,0.1));
+    border-radius: 50%;
+    filter: blur(60px);
+    animation: blobPulse 8s ease-in-out infinite;
+  }
+
+  .v4-cta-inner {
+    position: relative; z-index: 2;
+    text-align: center;
+    max-width: 500px;
+  }
+
+  .v4-cta-inner h2 {
+    font-family: Georgia, serif;
+    font-size: 42px; font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .v4-cta-inner p {
+    color: #8b7355;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 6 — VARIANT 5: DARK EDITORIAL
+     ══════════════════════════════════════════════════════ */
+  .v5 { background: #111; color: #e8e0d4; }
+  .v5 .variant-label { color: #D4A853; }
+  .v5 .variant-tabs button {
+    color: #D4A853; border-color: rgba(212,168,83,0.25);
+  }
+  .v5 .variant-tabs button.active {
+    background: #D4A853; border-color: #D4A853; color: #111;
+  }
+
+  .v5-hero {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 80px;
+    position: relative;
+  }
+
+  .v5-hero::before, .v5-hero::after {
+    content: '';
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    width: 160px; height: 1px;
+    background: #D4A853;
+  }
+
+  .v5-hero::before { top: 30%; }
+  .v5-hero::after { bottom: 30%; }
+
+  .v5-hero-inner {
+    text-align: center;
+    max-width: 800px;
+  }
+
+  .v5-hero-inner h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(40px, 5.5vw, 80px);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+
+  .v5-gold-rule {
+    width: 80px; height: 1px;
+    background: #D4A853;
+    margin: 24px auto;
+  }
+
+  .v5-hero-inner p {
+    font-size: 17px;
+    color: rgba(232,224,212,0.5);
+    line-height: 1.7;
+    max-width: 500px;
+    margin: 0 auto 40px;
+    font-weight: 300;
+  }
+
+  .v5-btn {
+    display: inline-block;
+    padding: 14px 48px;
+    border: 1px solid #D4A853;
+    color: #D4A853;
+    font-family: 'Outfit'; font-size: 13px; font-weight: 500;
+    letter-spacing: 3px; text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .v5-btn:hover {
+    background: #D4A853;
+    color: #111;
+  }
+
+  /* V5 Features */
+  .v5-features {
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    position: relative;
+  }
+
+  .v5-feat-col {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 48px;
+    border-right: 1px solid rgba(212,168,83,0.15);
+    text-align: center;
+  }
+
+  .v5-feat-col:last-child { border-right: none; }
+
+  .v5-feat-col .gold-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px; color: #D4A853;
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  .v5-feat-col h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 400;
+    margin-bottom: 16px;
+  }
+
+  .v5-feat-col p {
+    font-size: 14px; line-height: 1.7;
+    color: rgba(232,224,212,0.4);
+    max-width: 280px;
+  }
+
+  .v5-feat-rule {
+    width: 40px; height: 1px;
+    background: #D4A853;
+    margin: 20px auto;
+  }
+
+  /* V5 CTA */
+  .v5-cta {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .v5-cta h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px; font-weight: 400;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .v5-cta p {
+    color: rgba(232,224,212,0.4);
+    margin-bottom: 40px;
+    text-align: center;
+    font-weight: 300;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 7 — COMPARE
+     ══════════════════════════════════════════════════════ */
+  .compare-slide {
+    background: var(--shell-bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px;
+  }
+
+  .compare-slide h2 {
+    font-size: clamp(28px, 3vw, 42px);
+    font-weight: 800;
+    margin-bottom: 48px;
+    letter-spacing: -1px;
+  }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  .compare-thumb {
+    aspect-ratio: 4/3;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.35s;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  .compare-thumb:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+  }
+
+  .compare-thumb .ct-inner {
+    width: 100%; height: 100%;
+    display: flex; align-items: flex-end;
+    padding: 16px;
+  }
+
+  .compare-thumb .ct-name {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .ct-1 .ct-inner {
+    background: linear-gradient(135deg, #0a0a1a, #134e4a);
+    color: #fff;
+  }
+
+  .ct-2 .ct-inner {
+    background: linear-gradient(90deg, #1a1a2e 50%, #f3f4f6 50%);
+    color: #fff;
+  }
+
+  .ct-3 .ct-inner {
+    background: #fff; border: 3px solid #000;
+    color: #000;
+  }
+
+  .ct-4 .ct-inner {
+    background: linear-gradient(135deg, #FFF8F0, #fecaca);
+    color: #6b5240;
+  }
+
+  .ct-5 .ct-inner {
+    background: #111; border: 1px solid #D4A853;
+    color: #D4A853;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SLIDE 8 — DECISION
+     ══════════════════════════════════════════════════════ */
+  .decision-slide {
+    background: var(--shell-bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px;
+    text-align: center;
+  }
+
+  .decision-slide h2 {
+    font-size: clamp(36px, 4.5vw, 64px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+
+  .decision-slide h2 span {
+    background: linear-gradient(135deg, var(--emerald), #0d9488);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .decision-slide .dec-sub {
+    font-size: 18px; color: #6b7280;
+    font-weight: 300;
+    margin-bottom: 56px;
+  }
+
+  .decision-arrow {
+    font-size: 48px;
+    color: var(--emerald);
+    margin-bottom: 32px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .decision-card {
+    width: 320px; height: 200px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 40px rgba(16,185,129,0.15);
+    border: 2px solid var(--emerald);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  .decision-card .dc-q {
+    font-size: 56px; color: var(--emerald);
+    font-weight: 200;
+  }
+
+  .decision-card::after {
+    content: 'Your direction';
+    position: absolute; bottom: -36px;
+    font-size: 13px; font-weight: 600;
+    color: #6b7280; letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: INTRO -->
+  <div class="slide intro-slide active" data-index="0">
+    <h1 class="anim-fade-up"><span>5 Directions.</span> One Vision.</h1>
+    <p class="subtitle anim-fade-up-d1">Exploring visual identity for Validated</p>
+    <div class="preview-row">
+      <div class="preview-card pc-gradient anim-scale-d1" onclick="goSlide(1)">
+        <div class="pc-label">Gradient Mesh</div>
+      </div>
+      <div class="preview-card pc-split anim-scale-d2" onclick="goSlide(2)">
+        <div class="pc-label">Split Screen</div>
+      </div>
+      <div class="preview-card pc-brutalist anim-scale-d3" onclick="goSlide(3)">
+        <div class="pc-label">Neo-Brutalist</div>
+      </div>
+      <div class="preview-card pc-warm anim-scale-d4" onclick="goSlide(4)">
+        <div class="pc-label">Warm Organic</div>
+      </div>
+      <div class="preview-card pc-editorial anim-scale-d5" onclick="goSlide(5)">
+        <div class="pc-label">Dark Editorial</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: VARIANT 1 — GRADIENT MESH -->
+  <div class="slide v1" data-index="1">
+    <div class="variant-label">01 — Gradient Mesh</div>
+    <div class="variant-tabs" data-variant="1">
+      <button class="active" onclick="switchTab(1,0)">Hero</button>
+      <button onclick="switchTab(1,1)">Features</button>
+      <button onclick="switchTab(1,2)">CTA</button>
+    </div>
+    <div class="v1-mesh">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="sub-screen active" data-sub="1-0">
+      <div class="v1-content">
+        <h2 class="v1-hero-headline anim-fade-up">Turn assumptions<br>into answers</h2>
+        <p class="v1-hero-sub anim-fade-up-d1">Validate your startup idea with real peer feedback before writing a single line of code.</p>
+        <button class="glass-btn anim-fade-up-d2">Start Validating</button>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="1-1">
+      <div class="v1-content">
+        <div class="v1-features">
+          <div class="v1-feat-card glass-card anim-scale-d1">
+            <div class="v1-feat-icon">&#9672;</div>
+            <h3>Submit Your Idea</h3>
+            <p>Describe your concept in a structured format designed to surface blind spots.</p>
+          </div>
+          <div class="v1-feat-card glass-card anim-scale-d2">
+            <div class="v1-feat-icon">&#9733;</div>
+            <h3>Peer Review</h3>
+            <p>Get matched with experienced founders who give structured, honest feedback.</p>
+          </div>
+          <div class="v1-feat-card glass-card anim-scale-d3">
+            <div class="v1-feat-icon">&#9670;</div>
+            <h3>Validation Score</h3>
+            <p>Receive a data-driven score that tells you if your idea is worth pursuing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="1-2">
+      <div class="v1-content">
+        <div class="v1-cta-form glass-card">
+          <h2>Get Early Access</h2>
+          <p>Join the waitlist and be among the first to validate.</p>
+          <div class="v1-input-row">
+            <input type="email" placeholder="your@email.com" readonly>
+            <button>Join Waitlist</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: VARIANT 2 — SPLIT SCREEN -->
+  <div class="slide v2" data-index="2">
+    <div class="variant-label" style="color:rgba(255,255,255,0.7)">02 — Split Screen</div>
+    <div class="variant-tabs" data-variant="2">
+      <button class="active" onclick="switchTab(2,0)">Hero</button>
+      <button onclick="switchTab(2,1)">How It Works</button>
+      <button onclick="switchTab(2,2)">CTA</button>
+    </div>
+
+    <div class="sub-screen active" data-sub="2-0">
+      <div class="v2-split">
+        <div class="v2-left">
+          <div class="v2-hero-text">
+            <h2 class="anim-fade-up">Stop building.<br>Start <span class="em-text">validating.</span></h2>
+            <p class="anim-fade-up-d1">The peer-to-peer platform where founders pressure-test ideas before investing time and money.</p>
+            <a class="v2-btn anim-fade-up-d2" href="#">Get Started</a>
+          </div>
+        </div>
+        <div class="v2-right">
+          <div class="v2-mockup anim-scale-d1">
+            <div class="v2-mockup-inner">
+              <div class="v2-mockup-bar"></div>
+              <div class="v2-mockup-line"></div>
+              <div class="v2-mockup-line short"></div>
+              <div class="v2-mockup-line"></div>
+              <div class="v2-mockup-line short"></div>
+              <div class="v2-mockup-block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="2-1">
+      <div class="v2-steps">
+        <div class="v2-step-row">
+          <div class="v2-step-side dark">
+            <span class="v2-step-num">01</span>
+            <div class="v2-step-text">
+              <h3>Describe Your Idea</h3>
+              <p>Use our guided framework to articulate your concept clearly.</p>
+            </div>
+          </div>
+          <div class="v2-step-side light">
+            <span class="v2-step-num" style="color:#1a1a2e; opacity:0.08;">01</span>
+          </div>
+        </div>
+        <div class="v2-step-row">
+          <div class="v2-step-side light">
+            <span class="v2-step-num" style="color:#1a1a2e; opacity:0.08;">02</span>
+          </div>
+          <div class="v2-step-side dark">
+            <span class="v2-step-num">02</span>
+            <div class="v2-step-text">
+              <h3>Get Matched</h3>
+              <p>We pair you with founders in complementary domains for unbiased feedback.</p>
+            </div>
+          </div>
+        </div>
+        <div class="v2-step-row">
+          <div class="v2-step-side dark">
+            <span class="v2-step-num">03</span>
+            <div class="v2-step-text">
+              <h3>Receive Your Score</h3>
+              <p>A clear validation score and actionable insights to guide your next move.</p>
+            </div>
+          </div>
+          <div class="v2-step-side light">
+            <span class="v2-step-num" style="color:#1a1a2e; opacity:0.08;">03</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="2-2">
+      <div class="v2-cta-band">
+        <h2 class="anim-fade-up">Your next idea<br>deserves proof.</h2>
+        <a href="#" class="v2-cta-btn anim-fade-up-d1">Join the Waitlist</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: VARIANT 3 — NEO-BRUTALIST -->
+  <div class="slide v3" data-index="3">
+    <div class="variant-label">03 — Neo-Brutalist</div>
+    <div class="variant-tabs" data-variant="3">
+      <button class="active" onclick="switchTab(3,0)">Hero</button>
+      <button onclick="switchTab(3,1)">Features</button>
+      <button onclick="switchTab(3,2)">CTA</button>
+    </div>
+
+    <div class="sub-screen active" data-sub="3-0">
+      <div class="v3-hero-full">
+        <div class="v3-hero-content">
+          <h2 class="anim-fade-up">Don't<br>guess.<br><span class="highlight">Validate.</span></h2>
+          <p class="anim-fade-up-d1">Peer-to-peer market validation for founders who move fast and demand truth.</p>
+          <a href="#" class="v3-brutal-btn anim-fade-up-d2">Get Feedback Now</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="3-1">
+      <div class="v3-features-grid">
+        <div class="v3-feat-item">
+          <div class="v3-feat-num">01</div>
+          <h3>Submit</h3>
+          <p>Pitch your idea in a raw, structured format. No fluff. No decks.</p>
+        </div>
+        <div class="v3-feat-item">
+          <div class="v3-feat-num">02</div>
+          <h3>Review</h3>
+          <p>Founders who've been there tear it apart with constructive honesty.</p>
+        </div>
+        <div class="v3-feat-item" style="border-right:none;">
+          <div class="v3-feat-num">03</div>
+          <h3>Score</h3>
+          <p>Get a brutal validation score. No sugarcoating. Just signal.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="3-2">
+      <div class="v3-cta-block">
+        <h2 class="anim-fade-up">Stop dreaming.<br>Start proving.</h2>
+        <a href="#" class="v3-brutal-btn anim-fade-up-d1" style="background:#fff;color:#000;">Ship Your Idea</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: VARIANT 4 — WARM ORGANIC -->
+  <div class="slide v4" data-index="4">
+    <div class="variant-label">04 — Warm Organic</div>
+    <div class="variant-tabs" data-variant="4">
+      <button class="active" onclick="switchTab(4,0)">Hero</button>
+      <button onclick="switchTab(4,1)">Trust</button>
+      <button onclick="switchTab(4,2)">CTA</button>
+    </div>
+
+    <div class="sub-screen active" data-sub="4-0">
+      <div class="v4-hero">
+        <div class="v4-blob v4-blob-1"></div>
+        <div class="v4-blob v4-blob-2"></div>
+        <div class="v4-hero-inner">
+          <h2 class="anim-fade-up">Nurture your idea<br>with honest feedback</h2>
+          <p class="anim-fade-up-d1">Connect with fellow founders who care about your success. Validate gently, build confidently.</p>
+          <button class="v4-btn anim-fade-up-d2">Start Your Journey</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="4-1">
+      <div class="v4-trust">
+        <h2 class="anim-fade-up">Trusted by founders everywhere</h2>
+        <div class="v4-testimonials">
+          <div class="v4-test-card anim-scale-d1">
+            <div class="avatar" style="background:linear-gradient(135deg,#f97066,#fb923c);">A</div>
+            <p>"Validated saved me 6 months of building the wrong thing. The peer feedback was incredibly insightful."</p>
+            <div class="name">Amara Chen, Founder</div>
+          </div>
+          <div class="v4-test-card anim-scale-d2">
+            <div class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899);">M</div>
+            <p>"I was about to raise a seed round. The validation process helped me pivot to a much stronger concept."</p>
+            <div class="name">Marcus Rivera, CEO</div>
+          </div>
+          <div class="v4-test-card anim-scale-d3">
+            <div class="avatar" style="background:linear-gradient(135deg,#10b981,#0d9488);">S</div>
+            <p>"The community here is supportive but brutally honest. Exactly what early-stage founders need."</p>
+            <div class="name">Sarah Kim, Builder</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="4-2">
+      <div class="v4-cta-section">
+        <div class="v4-cta-blob"></div>
+        <div class="v4-cta-inner">
+          <h2 class="anim-fade-up">Ready to grow?</h2>
+          <p class="anim-fade-up-d1">Join a warm community of founders who validate together.</p>
+          <button class="v4-btn anim-fade-up-d2">Get Early Access</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: VARIANT 5 — DARK EDITORIAL -->
+  <div class="slide v5" data-index="5">
+    <div class="variant-label">05 — Dark Editorial</div>
+    <div class="variant-tabs" data-variant="5">
+      <button class="active" onclick="switchTab(5,0)">Hero</button>
+      <button onclick="switchTab(5,1)">Features</button>
+      <button onclick="switchTab(5,2)">CTA</button>
+    </div>
+
+    <div class="sub-screen active" data-sub="5-0">
+      <div class="v5-hero">
+        <div class="v5-hero-inner">
+          <h2 class="anim-fade-up">The market doesn't<br>care about your vision</h2>
+          <div class="v5-gold-rule anim-fade-up-d1"></div>
+          <p class="anim-fade-up-d2">Until you prove it. Validated connects founders with peers who separate conviction from delusion.</p>
+          <a href="#" class="v5-btn anim-fade-up-d3">Request Access</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="5-1">
+      <div class="v5-features">
+        <div class="v5-feat-col">
+          <div class="gold-num anim-fade-up">I</div>
+          <div class="v5-feat-rule anim-fade-up-d1"></div>
+          <h3 class="anim-fade-up-d1">Articulate</h3>
+          <p class="anim-fade-up-d2">Present your thesis with clarity. Our framework strips away the noise.</p>
+        </div>
+        <div class="v5-feat-col">
+          <div class="gold-num anim-fade-up">II</div>
+          <div class="v5-feat-rule anim-fade-up-d1"></div>
+          <h3 class="anim-fade-up-d1">Interrogate</h3>
+          <p class="anim-fade-up-d2">Peers with domain expertise probe your assumptions with rigor.</p>
+        </div>
+        <div class="v5-feat-col">
+          <div class="gold-num anim-fade-up">III</div>
+          <div class="v5-feat-rule anim-fade-up-d1"></div>
+          <h3 class="anim-fade-up-d1">Illuminate</h3>
+          <p class="anim-fade-up-d2">A refined score and synthesis reveal what the market actually thinks.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-screen" data-sub="5-2">
+      <div class="v5-cta">
+        <h2 class="anim-fade-up">Begin with truth</h2>
+        <p class="anim-fade-up-d1">The most expensive startup mistake is building before validating.</p>
+        <a href="#" class="v5-btn anim-fade-up-d2">Apply Now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: COMPARE -->
+  <div class="slide compare-slide" data-index="6">
+    <h2 class="anim-fade-up">Which direction speaks to your audience?</h2>
+    <div class="compare-grid">
+      <div class="compare-thumb ct-1 anim-scale-d1" onclick="goSlide(1)">
+        <div class="ct-inner"><span class="ct-name">Gradient Mesh</span></div>
+      </div>
+      <div class="compare-thumb ct-2 anim-scale-d2" onclick="goSlide(2)">
+        <div class="ct-inner"><span class="ct-name">Split Screen</span></div>
+      </div>
+      <div class="compare-thumb ct-3 anim-scale-d3" onclick="goSlide(3)">
+        <div class="ct-inner"><span class="ct-name">Neo-Brutalist</span></div>
+      </div>
+      <div class="compare-thumb ct-4 anim-scale-d4" onclick="goSlide(4)">
+        <div class="ct-inner"><span class="ct-name">Warm Organic</span></div>
+      </div>
+      <div class="compare-thumb ct-5 anim-scale-d5" onclick="goSlide(5)">
+        <div class="ct-inner"><span class="ct-name">Dark Editorial</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: DECISION -->
+  <div class="slide decision-slide" data-index="7">
+    <h2 class="anim-fade-up"><span>The chosen direction</span></h2>
+    <p class="dec-sub anim-fade-up-d1">One identity to carry Validated forward</p>
+    <div class="decision-arrow anim-fade-up-d2">&#8595;</div>
+    <div class="decision-card anim-scale-d3">
+      <span class="dc-q">?</span>
+    </div>
+  </div>
+</div>
+
+<!-- DOT NAVIGATION -->
+<div class="dots" id="dots"></div>
+
+<script>
+  const TOTAL_SLIDES = 8;
+  let current = 0;
+
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('dots');
+
+  // Build dots
+  for (let i = 0; i < TOTAL_SLIDES; i++) {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goSlide(i));
+    dotsContainer.appendChild(d);
+  }
+
+  function goSlide(n) {
+    if (n < 0 || n >= TOTAL_SLIDES || n === current) return;
+    slides[current].classList.remove('active');
+    slides[n].classList.add('active');
+    dotsContainer.children[current].classList.remove('active');
+    dotsContainer.children[n].classList.add('active');
+    current = n;
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      goSlide(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goSlide(current - 1);
+    }
+  });
+
+  // Tab switching within variants
+  function switchTab(variant, subIndex) {
+    const tabContainer = document.querySelector(
+      `.variant-tabs[data-variant="${variant}"]`
+    );
+    tabContainer.querySelectorAll('button').forEach((btn, i) => {
+      btn.classList.toggle('active', i === subIndex);
+    });
+
+    const parentSlide = tabContainer.closest('.slide');
+    parentSlide.querySelectorAll('.sub-screen').forEach((screen) => {
+      const key = screen.getAttribute('data-sub');
+      screen.classList.toggle('active', key === `${variant}-${subIndex}`);
+    });
+  }
+</script>
+</body>
+</html>
