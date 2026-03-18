@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validated — Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Satoshi:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('https://fonts.googleapis.com/css2?family=Satoshi:wght@300;400;500;700;900&display=swap');
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f5f0;
+    --emerald: #10b981;
+    --emerald-glow: rgba(16, 185, 129, 0.15);
+    --dim: rgba(245, 245, 240, 0.4);
+    --faint: rgba(245, 245, 240, 0.08);
+    --serif: 'Instrument Serif', Georgia, serif;
+    --sans: 'Satoshi', system-ui, sans-serif;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: var(--sans);
+    background: var(--black);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Slide Engine ── */
+  .deck { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0; pointer-events: none;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .slide.active { opacity: 1; pointer-events: auto; z-index: 2; }
+
+  /* ── Grain overlay ── */
+  .deck::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px;
+    z-index: 100;
+    background: linear-gradient(transparent, rgba(10,10,10,0.9));
+  }
+
+  .dots { display: flex; gap: 8px; }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(245,245,240,0.15);
+    border: none; cursor: pointer;
+    transition: all 0.35s;
+  }
+
+  .dot.active {
+    background: var(--emerald);
+    box-shadow: 0 0 12px var(--emerald-glow);
+    transform: scale(1.4);
+  }
+
+  .slide-counter {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    color: var(--dim);
+  }
+
+  .timer-bar {
+    position: fixed; top: 0; left: 0;
+    height: 2px;
+    background: var(--emerald);
+    z-index: 100;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 20px var(--emerald-glow);
+  }
+
+  /* ── Progress line on each slide ── */
+  .slide-progress {
+    position: absolute; bottom: 56px; left: 0;
+    height: 1px; width: 0;
+    background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+    transition: width 15s linear;
+  }
+
+  .slide.active .slide-progress { width: 100%; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(50px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes scaleReveal {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes drawLine {
+    from { width: 0; }
+    to   { width: 100%; }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 40px var(--emerald-glow); }
+    50% { box-shadow: 0 0 80px rgba(16,185,129,0.25); }
+  }
+
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-80px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(80px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes typewriter {
+    from { width: 0; }
+    to   { width: 100%; }
+  }
+
+  @keyframes blink {
+    50% { border-color: transparent; }
+  }
+
+  .slide.active .au  { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au1 { animation: fadeUp 0.8s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au2 { animation: fadeUp 0.8s 0.24s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au3 { animation: fadeUp 0.8s 0.36s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au4 { animation: fadeUp 0.8s 0.48s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au5 { animation: fadeUp 0.8s 0.60s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au6 { animation: fadeUp 0.8s 0.72s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .au7 { animation: fadeUp 0.8s 0.84s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .sr  { animation: scaleReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .sr1 { animation: scaleReveal 0.7s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .sr2 { animation: scaleReveal 0.7s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .sr3 { animation: scaleReveal 0.7s 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .fi  { animation: fadeIn 1s both; }
+  .slide.active .fi1 { animation: fadeIn 1s 0.3s both; }
+  .slide.active .fi2 { animation: fadeIn 1s 0.6s both; }
+  .slide.active .sl  { animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .srl { animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .sl1 { animation: slideInLeft 0.8s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .slide.active .sr1l { animation: slideInRight 0.8s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  /* ── Shared typography ── */
+  .headline {
+    font-family: var(--serif);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -1.5px;
+  }
+
+  .label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--emerald);
+  }
+
+  .body-text {
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--dim);
+    max-width: 640px;
+  }
+
+  .em { color: var(--emerald); }
+  .italic { font-style: italic; }
+
+  .rule {
+    width: 64px; height: 1px;
+    background: var(--emerald);
+    margin: 32px 0;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 1 — TITLE
+     ══════════════════════════════════════ */
+  .s-title {
+    text-align: center;
+    position: relative;
+  }
+
+  .s-title::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(60px);
+  }
+
+  .s-title .headline {
+    font-size: clamp(56px, 8vw, 120px);
+    position: relative;
+  }
+
+  .s-title .tagline {
+    font-family: var(--serif);
+    font-size: clamp(20px, 2.5vw, 32px);
+    font-style: italic;
+    color: var(--dim);
+    margin-top: 20px;
+  }
+
+  .logo-mark {
+    width: 48px; height: 48px;
+    border: 2px solid var(--emerald);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 40px;
+    font-family: var(--serif);
+    font-size: 28px;
+    color: var(--emerald);
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 2 — PROBLEM
+     ══════════════════════════════════════ */
+  .s-problem { text-align: center; }
+
+  .big-stat {
+    font-family: var(--serif);
+    font-size: clamp(80px, 12vw, 180px);
+    font-weight: 400;
+    color: var(--emerald);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .stat-context {
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--dim);
+    max-width: 500px;
+    line-height: 1.5;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 3 — WHY
+     ══════════════════════════════════════ */
+  .s-why { text-align: left; max-width: 1000px; width: 100%; }
+
+  .why-quote {
+    font-family: var(--serif);
+    font-size: clamp(28px, 4vw, 52px);
+    font-style: italic;
+    line-height: 1.35;
+    color: var(--white);
+    position: relative;
+    padding-left: 40px;
+    border-left: 2px solid var(--emerald);
+  }
+
+  .why-attribution {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--dim);
+    margin-top: 32px;
+    padding-left: 40px;
+    letter-spacing: 1px;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 4 — SOLUTION
+     ══════════════════════════════════════ */
+  .s-solution { text-align: center; }
+
+  .s-solution .headline {
+    font-size: clamp(36px, 5vw, 72px);
+    margin-bottom: 24px;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 5 — HOW IT WORKS
+     ══════════════════════════════════════ */
+  .s-how { max-width: 1100px; width: 100%; }
+
+  .steps-row {
+    display: flex;
+    gap: 2px;
+    margin-top: 56px;
+  }
+
+  .step-card {
+    flex: 1;
+    padding: 48px 32px;
+    background: var(--faint);
+    border: 1px solid rgba(245,245,240,0.05);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s;
+  }
+
+  .step-card:first-child { border-radius: 20px 0 0 20px; }
+  .step-card:last-child { border-radius: 0 20px 20px 0; }
+
+  .step-card:hover { background: rgba(16,185,129,0.06); }
+
+  .step-num {
+    font-family: var(--serif);
+    font-size: 64px;
+    color: var(--emerald);
+    opacity: 0.2;
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+
+  .step-card h3 {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+
+  .step-card p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--dim);
+  }
+
+  .step-connector {
+    position: absolute;
+    right: -14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--emerald);
+    font-size: 20px;
+    z-index: 5;
+    opacity: 0.4;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 6 — SCIENCE
+     ══════════════════════════════════════ */
+  .s-science { max-width: 1000px; width: 100%; }
+
+  .framework-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .fw-card {
+    padding: 32px 20px;
+    text-align: center;
+    border: 1px solid var(--faint);
+    border-radius: 16px;
+    transition: all 0.35s;
+  }
+
+  .fw-card:hover {
+    border-color: var(--emerald);
+    background: var(--emerald-glow);
+    transform: translateY(-4px);
+  }
+
+  .fw-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .fw-card h4 {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  .fw-card p {
+    font-size: 11px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 7 — TRACTION / MARKET
+     ══════════════════════════════════════ */
+  .s-traction { max-width: 1000px; width: 100%; }
+
+  .metrics-row {
+    display: flex;
+    gap: 48px;
+    margin-top: 56px;
+    justify-content: center;
+  }
+
+  .metric {
+    text-align: center;
+  }
+
+  .metric-val {
+    font-family: var(--serif);
+    font-size: clamp(48px, 6vw, 80px);
+    color: var(--emerald);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .metric-label {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .market-bar {
+    margin-top: 64px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .market-track {
+    flex: 1;
+    height: 4px;
+    background: var(--faint);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .market-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--emerald), #34d399);
+    border-radius: 2px;
+    width: 0;
+    transition: width 2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .slide.active .market-fill { width: 65%; }
+
+  .market-text {
+    font-size: 13px;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 8 — BUSINESS MODEL
+     ══════════════════════════════════════ */
+  .s-model { max-width: 900px; width: 100%; text-align: center; }
+
+  .model-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 56px;
+  }
+
+  .model-node {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 1px solid var(--faint);
+    transition: all 0.4s;
+  }
+
+  .model-node:hover {
+    border-color: var(--emerald);
+    box-shadow: 0 0 40px var(--emerald-glow);
+  }
+
+  .model-node .mn-icon { font-size: 32px; margin-bottom: 12px; }
+
+  .model-node h4 {
+    font-family: var(--serif);
+    font-size: 18px; margin-bottom: 4px;
+  }
+
+  .model-node p {
+    font-size: 11px; color: var(--dim);
+  }
+
+  .model-arrow {
+    color: var(--emerald);
+    font-size: 28px;
+    opacity: 0.4;
+  }
+
+  .model-bottom {
+    margin-top: 48px;
+    padding: 24px 40px;
+    border: 1px solid var(--faint);
+    border-radius: 16px;
+    display: inline-flex;
+    gap: 48px;
+  }
+
+  .mb-item {
+    text-align: center;
+  }
+
+  .mb-item .mb-val {
+    font-family: var(--serif);
+    font-size: 28px;
+    color: var(--emerald);
+  }
+
+  .mb-item .mb-label {
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 9 — DIFFERENTIATORS
+     ══════════════════════════════════════ */
+  .s-diff { max-width: 1000px; width: 100%; }
+
+  .diff-table {
+    margin-top: 48px;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .diff-table th {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid var(--faint);
+  }
+
+  .diff-table th:last-child {
+    color: var(--emerald);
+    text-align: center;
+  }
+
+  .diff-table td {
+    padding: 20px 24px;
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--dim);
+    border-bottom: 1px solid rgba(245,245,240,0.03);
+    vertical-align: middle;
+  }
+
+  .diff-table td:first-child {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  .diff-table td:last-child {
+    text-align: center;
+    color: var(--emerald);
+    font-size: 20px;
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 10 — ASK
+     ══════════════════════════════════════ */
+  .s-ask { text-align: center; position: relative; }
+
+  .s-ask::before {
+    content: '';
+    position: absolute;
+    width: 800px; height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 60%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(80px);
+    animation: pulseGlow 4s ease-in-out infinite;
+  }
+
+  .s-ask .headline {
+    font-size: clamp(40px, 6vw, 84px);
+    position: relative;
+  }
+
+  .ask-details {
+    display: flex;
+    gap: 56px;
+    margin-top: 56px;
+    position: relative;
+  }
+
+  .ask-item {
+    text-align: center;
+  }
+
+  .ask-item .ai-val {
+    font-family: var(--serif);
+    font-size: 36px;
+    color: var(--emerald);
+    margin-bottom: 8px;
+  }
+
+  .ask-item .ai-label {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dim);
+  }
+
+  /* ══════════════════════════════════════
+     SLIDE 11 — CLOSE
+     ══════════════════════════════════════ */
+  .s-close { text-align: center; position: relative; }
+
+  .s-close::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(60px);
+  }
+
+  .s-close .headline {
+    font-size: clamp(48px, 7vw, 100px);
+    position: relative;
+  }
+
+  .close-url {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    color: var(--emerald);
+    margin-top: 32px;
+    position: relative;
+  }
+
+  .close-sub {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--dim);
+    margin-top: 16px;
+    position: relative;
+  }
+
+  /* ── Auto-play controls ── */
+  .auto-play-btn {
+    position: fixed;
+    top: 24px; right: 32px;
+    z-index: 100;
+    padding: 8px 20px;
+    border-radius: 40px;
+    border: 1px solid var(--faint);
+    background: rgba(10,10,10,0.8);
+    backdrop-filter: blur(12px);
+    color: var(--dim);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .auto-play-btn:hover {
+    border-color: var(--emerald);
+    color: var(--emerald);
+  }
+
+  .auto-play-btn.playing {
+    border-color: var(--emerald);
+    color: var(--emerald);
+    box-shadow: 0 0 20px var(--emerald-glow);
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: TITLE -->
+  <div class="slide s-title active">
+    <div class="logo-mark au">V</div>
+    <h1 class="headline au1"><span class="em">Validated</span></h1>
+    <p class="tagline au2">Validate your idea before you build</p>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 2: PROBLEM -->
+  <div class="slide s-problem">
+    <p class="label au">The problem</p>
+    <div class="rule au1"></div>
+    <div class="big-stat au2">90%</div>
+    <p class="stat-context au3">of startups fail.<br>The #1 reason? Building something <span class="em">nobody wants.</span></p>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 3: WHY -->
+  <div class="slide s-why">
+    <p class="label au">The insight</p>
+    <div class="rule au1"></div>
+    <blockquote class="why-quote au2">
+      Founders don't fail because they can't build.<br>
+      They fail because they <span class="em">never asked</span> the right people<br>
+      the right questions.
+    </blockquote>
+    <p class="why-attribution au3">— Every failed post-mortem, ever</p>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 4: SOLUTION -->
+  <div class="slide s-solution">
+    <p class="label au">The solution</p>
+    <div class="rule au1" style="margin: 32px auto;"></div>
+    <h2 class="headline au2">AI-powered surveys.<br><span class="em">Real peer feedback.</span><br>In 72 hours.</h2>
+    <p class="body-text au3" style="margin-top: 32px; text-align: center;">
+      Validated generates research-grade surveys from your idea description,
+      matches you with relevant founders, and delivers a validation score
+      grounded in proven frameworks.
+    </p>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 5: HOW IT WORKS -->
+  <div class="slide s-how">
+    <p class="label au">How it works</p>
+    <div class="rule au1"></div>
+    <div class="steps-row">
+      <div class="step-card au2">
+        <div class="step-num">1</div>
+        <h3>Describe</h3>
+        <p>Tell us your idea, your ICP, and what you want to validate.</p>
+        <span class="step-connector">→</span>
+      </div>
+      <div class="step-card au3">
+        <div class="step-num">2</div>
+        <h3>Generate</h3>
+        <p>AI creates 8–12 framework-based questions. Bias-checked automatically.</p>
+        <span class="step-connector">→</span>
+      </div>
+      <div class="step-card au4">
+        <div class="step-num">3</div>
+        <h3>Collect</h3>
+        <p>Share with your network or our founder community. Real responses, not guesses.</p>
+        <span class="step-connector">→</span>
+      </div>
+      <div class="step-card au5">
+        <div class="step-num">4</div>
+        <h3>Validate</h3>
+        <p>Get a 0–100 validation score, key themes, red flags, and next steps.</p>
+      </div>
+    </div>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 6: SCIENCE -->
+  <div class="slide s-science">
+    <p class="label au">Built on science, not vibes</p>
+    <div class="rule au1"></div>
+    <h2 class="headline au2" style="font-size: clamp(28px, 3.5vw, 48px);">
+      Five proven research frameworks<br>power every survey
+    </h2>
+    <div class="framework-grid">
+      <div class="fw-card au3">
+        <div class="fw-icon">🎯</div>
+        <h4>Mom Test</h4>
+        <p>Past behavior,<br>not hypotheticals</p>
+      </div>
+      <div class="fw-card au4">
+        <div class="fw-icon">⚡</div>
+        <h4>JTBD</h4>
+        <p>Jobs, context,<br>desired outcomes</p>
+      </div>
+      <div class="fw-card au5">
+        <div class="fw-icon">🔬</div>
+        <h4>Problem Fit</h4>
+        <p>Validate problem<br>before solution</p>
+      </div>
+      <div class="fw-card au6">
+        <div class="fw-icon">💰</div>
+        <h4>WTP</h4>
+        <p>Van Westendorp<br>price sensitivity</p>
+      </div>
+      <div class="fw-card au7">
+        <div class="fw-icon">📈</div>
+        <h4>PMF Test</h4>
+        <p>Sean Ellis signal<br>for market fit</p>
+      </div>
+    </div>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 7: TRACTION -->
+  <div class="slide s-traction">
+    <p class="label au">Traction & market</p>
+    <div class="rule au1"></div>
+    <h2 class="headline au2" style="font-size: clamp(28px, 3.5vw, 48px);">
+      Launching with 50+ founders from<br><span class="em">Networks School</span>
+    </h2>
+    <div class="metrics-row">
+      <div class="metric au3">
+        <div class="metric-val">50+</div>
+        <div class="metric-label">Launch cohort</div>
+      </div>
+      <div class="metric au4">
+        <div class="metric-val">72h</div>
+        <div class="metric-label">Idea to insights</div>
+      </div>
+      <div class="metric au5">
+        <div class="metric-val">0→1</div>
+        <div class="metric-label">Free beta</div>
+      </div>
+    </div>
+    <div class="market-bar au6">
+      <span class="market-text">Validation tools market growth</span>
+      <div class="market-track">
+        <div class="market-fill"></div>
+      </div>
+      <span class="market-text" style="color: var(--emerald);">$4.2B by 2028</span>
+    </div>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 8: BUSINESS MODEL -->
+  <div class="slide s-model">
+    <p class="label au">Business model</p>
+    <div class="rule au1" style="margin: 32px auto;"></div>
+    <h2 class="headline au2" style="font-size: clamp(28px, 3vw, 44px);">
+      Points economy + premium tiers
+    </h2>
+    <div class="model-visual">
+      <div class="model-node au3">
+        <div class="mn-icon">📝</div>
+        <h4>Answer</h4>
+        <p>Earn 1 point</p>
+      </div>
+      <div class="model-arrow au4">⇄</div>
+      <div class="model-node au5">
+        <div class="mn-icon">🚀</div>
+        <h4>Publish</h4>
+        <p>Spend 1 point</p>
+      </div>
+    </div>
+    <div class="model-bottom au6">
+      <div class="mb-item">
+        <div class="mb-val">Free</div>
+        <div class="mb-label">Core exchange</div>
+      </div>
+      <div class="mb-item">
+        <div class="mb-val">Pro</div>
+        <div class="mb-label">Priority matching</div>
+      </div>
+      <div class="mb-item">
+        <div class="mb-val">Teams</div>
+        <div class="mb-label">Org dashboards</div>
+      </div>
+    </div>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 9: DIFFERENTIATORS -->
+  <div class="slide s-diff">
+    <p class="label au">Why us</p>
+    <div class="rule au1"></div>
+    <table class="diff-table">
+      <thead>
+        <tr class="au2">
+          <th></th>
+          <th>Surveys alone</th>
+          <th>Talking to users</th>
+          <th>Validated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="au3">
+          <td>Research framework</td>
+          <td>DIY / none</td>
+          <td>Unstructured</td>
+          <td>✓</td>
+        </tr>
+        <tr class="au4">
+          <td>Bias detection</td>
+          <td>None</td>
+          <td>None</td>
+          <td>✓</td>
+        </tr>
+        <tr class="au5">
+          <td>Qualified respondents</td>
+          <td>Random</td>
+          <td>Small circle</td>
+          <td>✓</td>
+        </tr>
+        <tr class="au6">
+          <td>Time to insight</td>
+          <td>Weeks</td>
+          <td>Months</td>
+          <td>✓</td>
+        </tr>
+        <tr class="au7">
+          <td>Validation score</td>
+          <td>—</td>
+          <td>—</td>
+          <td>✓</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 10: ASK -->
+  <div class="slide s-ask">
+    <p class="label au">The ask</p>
+    <div class="rule au1" style="margin: 32px auto;"></div>
+    <h2 class="headline au2">Join our <span class="em">free beta</span></h2>
+    <p class="body-text au3" style="text-align: center; margin-top: 24px;">
+      We're onboarding the first cohort of founders from Networks School.
+      Validate your next idea before writing a single line of code.
+    </p>
+    <div class="ask-details au4">
+      <div class="ask-item">
+        <div class="ai-val">Free</div>
+        <div class="ai-label">For NS founders</div>
+      </div>
+      <div class="ask-item">
+        <div class="ai-val">Q2 2026</div>
+        <div class="ai-label">Beta launch</div>
+      </div>
+      <div class="ask-item">
+        <div class="ai-val">50</div>
+        <div class="ai-label">Spots available</div>
+      </div>
+    </div>
+    <div class="slide-progress"></div>
+  </div>
+
+  <!-- SLIDE 11: CLOSE -->
+  <div class="slide s-close">
+    <div class="logo-mark au" style="margin-bottom: 32px;">V</div>
+    <h2 class="headline au1">Stop guessing.<br><span class="em">Start validating.</span></h2>
+    <p class="close-url au2">VALIDATED.APP</p>
+    <p class="close-sub au3">Built by Mantaray Digital</p>
+    <div class="slide-progress"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="dots" id="dots"></div>
+  <div class="slide-counter" id="counter">01 / 11</div>
+</div>
+
+<!-- TIMER BAR -->
+<div class="timer-bar" id="timer-bar"></div>
+
+<!-- AUTO-PLAY -->
+<button class="auto-play-btn" id="autoplay" onclick="toggleAutoPlay()">
+  ▶ Auto
+</button>
+
+<script>
+  const TOTAL = 11;
+  const AUTO_INTERVAL = 16400; // ~16s per slide = ~3 min total
+  let current = 0;
+  let autoTimer = null;
+  let isPlaying = false;
+
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('counter');
+  const timerBar = document.getElementById('timer-bar');
+  const autoBtn = document.getElementById('autoplay');
+
+  // Build dots
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goSlide(i));
+    dotsEl.appendChild(d);
+  }
+
+  function goSlide(n) {
+    if (n < 0 || n >= TOTAL || n === current) return;
+    slides[current].classList.remove('active');
+    slides[n].classList.add('active');
+    dotsEl.children[current].classList.remove('active');
+    dotsEl.children[n].classList.add('active');
+    current = n;
+    counterEl.textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+
+    // Update timer bar
+    timerBar.style.width = ((current + 1) / TOTAL * 100) + '%';
+
+    // Reset auto-play timer if playing
+    if (isPlaying) {
+      clearInterval(autoTimer);
+      if (current < TOTAL - 1) {
+        autoTimer = setInterval(() => goSlide(current + 1), AUTO_INTERVAL);
+      } else {
+        stopAutoPlay();
+      }
+    }
+  }
+
+  function toggleAutoPlay() {
+    if (isPlaying) {
+      stopAutoPlay();
+    } else {
+      startAutoPlay();
+    }
+  }
+
+  function startAutoPlay() {
+    isPlaying = true;
+    autoBtn.classList.add('playing');
+    autoBtn.textContent = '⏸ Auto';
+    autoTimer = setInterval(() => {
+      if (current < TOTAL - 1) {
+        goSlide(current + 1);
+      } else {
+        stopAutoPlay();
+      }
+    }, AUTO_INTERVAL);
+  }
+
+  function stopAutoPlay() {
+    isPlaying = false;
+    autoBtn.classList.remove('playing');
+    autoBtn.textContent = '▶ Auto';
+    clearInterval(autoTimer);
+  }
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      goSlide(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goSlide(current - 1);
+    } else if (e.key === 'a' || e.key === 'A') {
+      toggleAutoPlay();
+    }
+  });
+</script>
+</body>
+</html>
