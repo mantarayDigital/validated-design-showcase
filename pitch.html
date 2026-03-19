@@ -6,32 +6,34 @@
 <title>Validated — Pitch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Satoshi:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @font-face {
-    font-family: 'Satoshi';
-    src: url('https://fonts.googleapis.com/css2?family=Satoshi:wght@300;400;500;700;900&display=swap');
-  }
-
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --black: #0a0a0a;
-    --white: #f5f5f0;
+    --bg: #ffffff;
+    --fg: #111111;
+    --muted: #6b7280;
+    --subtle: #9ca3af;
+    --surface: #f9fafb;
+    --border: rgba(0, 0, 0, 0.06);
     --emerald: #10b981;
+    --emerald-light: rgba(16, 185, 129, 0.08);
     --emerald-glow: rgba(16, 185, 129, 0.15);
-    --dim: rgba(245, 245, 240, 0.4);
-    --faint: rgba(245, 245, 240, 0.08);
-    --serif: 'Instrument Serif', Georgia, serif;
-    --sans: 'Satoshi', system-ui, sans-serif;
+    --heading: 'Outfit', system-ui, sans-serif;
+    --body: 'IBM Plex Sans', system-ui, sans-serif;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    --shadow-md: 0 2px 6px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.05);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   html, body {
     width: 100%; height: 100%;
     overflow: hidden;
-    font-family: var(--sans);
-    background: var(--black);
-    color: var(--white);
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--fg);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -44,21 +46,11 @@
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 80px;
-    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.5s var(--ease);
     overflow: hidden;
   }
 
   .slide.active { opacity: 1; pointer-events: auto; z-index: 2; }
-
-  /* ── Grain overlay ── */
-  .deck::after {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 999;
-    opacity: 0.5;
-  }
 
   /* ── Bottom bar ── */
   .bottom-bar {
@@ -67,7 +59,6 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 40px;
     z-index: 100;
-    background: linear-gradient(transparent, rgba(10,10,10,0.9));
   }
 
   .dots { display: flex; gap: 8px; }
@@ -75,47 +66,36 @@
   .dot {
     width: 8px; height: 8px;
     border-radius: 50%;
-    background: rgba(245,245,240,0.15);
-    border: none; cursor: pointer;
-    transition: all 0.35s;
+    background: var(--border);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s var(--ease);
   }
 
   .dot.active {
     background: var(--emerald);
-    box-shadow: 0 0 12px var(--emerald-glow);
     transform: scale(1.4);
   }
 
   .slide-counter {
-    font-family: var(--sans);
+    font-family: var(--body);
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 3px;
-    color: var(--dim);
+    color: var(--subtle);
   }
 
-  .timer-bar {
+  .progress-bar {
     position: fixed; top: 0; left: 0;
     height: 2px;
     background: var(--emerald);
     z-index: 100;
     transition: width 0.3s ease;
-    box-shadow: 0 0 20px var(--emerald-glow);
   }
-
-  /* ── Progress line on each slide ── */
-  .slide-progress {
-    position: absolute; bottom: 56px; left: 0;
-    height: 1px; width: 0;
-    background: linear-gradient(90deg, transparent, var(--emerald), transparent);
-    transition: width 15s linear;
-  }
-
-  .slide.active .slide-progress { width: 100%; }
 
   /* ── Animations ── */
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(50px); }
+    from { opacity: 0; transform: translateY(40px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
@@ -124,139 +104,73 @@
     to   { opacity: 1; }
   }
 
-  @keyframes scaleReveal {
-    from { opacity: 0; transform: scale(0.85); }
-    to   { opacity: 1; transform: scale(1); }
-  }
+  .slide.active .au  { animation: fadeUp 0.7s var(--ease) both; }
+  .slide.active .au1 { animation: fadeUp 0.7s 0.1s var(--ease) both; }
+  .slide.active .au2 { animation: fadeUp 0.7s 0.2s var(--ease) both; }
+  .slide.active .au3 { animation: fadeUp 0.7s 0.3s var(--ease) both; }
+  .slide.active .au4 { animation: fadeUp 0.7s 0.4s var(--ease) both; }
+  .slide.active .au5 { animation: fadeUp 0.7s 0.5s var(--ease) both; }
+  .slide.active .fi  { animation: fadeIn 0.8s both; }
+  .slide.active .fi1 { animation: fadeIn 0.8s 0.2s both; }
 
-  @keyframes drawLine {
-    from { width: 0; }
-    to   { width: 100%; }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 40px var(--emerald-glow); }
-    50% { box-shadow: 0 0 80px rgba(16,185,129,0.25); }
-  }
-
-  @keyframes countUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-80px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(80px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  @keyframes typewriter {
-    from { width: 0; }
-    to   { width: 100%; }
-  }
-
-  @keyframes blink {
-    50% { border-color: transparent; }
-  }
-
-  .slide.active .au  { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au1 { animation: fadeUp 0.8s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au2 { animation: fadeUp 0.8s 0.24s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au3 { animation: fadeUp 0.8s 0.36s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au4 { animation: fadeUp 0.8s 0.48s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au5 { animation: fadeUp 0.8s 0.60s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au6 { animation: fadeUp 0.8s 0.72s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .au7 { animation: fadeUp 0.8s 0.84s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .sr  { animation: scaleReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .sr1 { animation: scaleReveal 0.7s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .sr2 { animation: scaleReveal 0.7s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .sr3 { animation: scaleReveal 0.7s 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .fi  { animation: fadeIn 1s both; }
-  .slide.active .fi1 { animation: fadeIn 1s 0.3s both; }
-  .slide.active .fi2 { animation: fadeIn 1s 0.6s both; }
-  .slide.active .sl  { animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .srl { animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .sl1 { animation: slideInLeft 0.8s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .slide.active .sr1l { animation: slideInRight 0.8s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
-
-  /* ── Shared typography ── */
+  /* ── Typography ── */
   .headline {
-    font-family: var(--serif);
-    font-weight: 400;
+    font-family: var(--heading);
+    font-weight: 600;
     line-height: 1.05;
-    letter-spacing: -1.5px;
+    letter-spacing: -0.03em;
+    color: var(--fg);
   }
 
   .label {
+    font-family: var(--body);
     font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 4px;
+    font-weight: 500;
+    letter-spacing: 3px;
     text-transform: uppercase;
     color: var(--emerald);
+    margin-bottom: 32px;
   }
 
   .body-text {
-    font-size: 20px;
+    font-family: var(--body);
+    font-size: 22px;
     font-weight: 300;
-    line-height: 1.7;
-    color: var(--dim);
-    max-width: 640px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 700px;
   }
 
   .em { color: var(--emerald); }
-  .italic { font-style: italic; }
-
-  .rule {
-    width: 64px; height: 1px;
-    background: var(--emerald);
-    margin: 32px 0;
-  }
 
   /* ══════════════════════════════════════
      SLIDE 1 — TITLE
      ══════════════════════════════════════ */
-  .s-title {
-    text-align: center;
-    position: relative;
-  }
+  .s-title { text-align: center; }
 
-  .s-title::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: blur(60px);
+  .s-title .logo {
+    width: 56px; height: 56px;
+    border: 2px solid var(--emerald);
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 48px;
+    font-family: var(--heading);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--emerald);
   }
 
   .s-title .headline {
-    font-size: clamp(56px, 8vw, 120px);
-    position: relative;
+    font-size: clamp(56px, 8vw, 110px);
+    font-weight: 700;
   }
 
-  .s-title .tagline {
-    font-family: var(--serif);
-    font-size: clamp(20px, 2.5vw, 32px);
-    font-style: italic;
-    color: var(--dim);
+  .s-title .sub {
+    font-family: var(--body);
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 300;
+    color: var(--muted);
     margin-top: 20px;
-  }
-
-  .logo-mark {
-    width: 48px; height: 48px;
-    border: 2px solid var(--emerald);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 40px;
-    font-family: var(--serif);
-    font-size: 28px;
-    color: var(--emerald);
   }
 
   /* ══════════════════════════════════════
@@ -264,438 +178,454 @@
      ══════════════════════════════════════ */
   .s-problem { text-align: center; }
 
-  .big-stat {
-    font-family: var(--serif);
-    font-size: clamp(80px, 12vw, 180px);
+  .s-problem .headline {
+    font-size: clamp(40px, 6vw, 80px);
+    max-width: 900px;
+  }
+
+  .s-problem .headline .line2 {
+    color: var(--muted);
     font-weight: 400;
-    color: var(--emerald);
-    line-height: 1;
-    margin-bottom: 16px;
-  }
-
-  .stat-context {
-    font-size: 24px;
-    font-weight: 300;
-    color: var(--dim);
-    max-width: 500px;
-    line-height: 1.5;
   }
 
   /* ══════════════════════════════════════
-     SLIDE 3 — WHY
+     SLIDE 3 — REALITY
      ══════════════════════════════════════ */
-  .s-why { text-align: left; max-width: 1000px; width: 100%; }
+  .s-reality { text-align: center; }
 
-  .why-quote {
-    font-family: var(--serif);
-    font-size: clamp(28px, 4vw, 52px);
-    font-style: italic;
-    line-height: 1.35;
-    color: var(--white);
-    position: relative;
-    padding-left: 40px;
-    border-left: 2px solid var(--emerald);
-  }
-
-  .why-attribution {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--dim);
-    margin-top: 32px;
-    padding-left: 40px;
-    letter-spacing: 1px;
-  }
-
-  /* ══════════════════════════════════════
-     SLIDE 4 — SOLUTION
-     ══════════════════════════════════════ */
-  .s-solution { text-align: center; }
-
-  .s-solution .headline {
-    font-size: clamp(36px, 5vw, 72px);
-    margin-bottom: 24px;
-  }
-
-  /* ══════════════════════════════════════
-     SLIDE 5 — HOW IT WORKS
-     ══════════════════════════════════════ */
-  .s-how { max-width: 1100px; width: 100%; }
-
-  .steps-row {
+  .s-reality .two-lines {
     display: flex;
-    gap: 2px;
-    margin-top: 56px;
-  }
-
-  .step-card {
-    flex: 1;
-    padding: 48px 32px;
-    background: var(--faint);
-    border: 1px solid rgba(245,245,240,0.05);
-    position: relative;
-    overflow: hidden;
-    transition: background 0.4s;
-  }
-
-  .step-card:first-child { border-radius: 20px 0 0 20px; }
-  .step-card:last-child { border-radius: 0 20px 20px 0; }
-
-  .step-card:hover { background: rgba(16,185,129,0.06); }
-
-  .step-num {
-    font-family: var(--serif);
-    font-size: 64px;
-    color: var(--emerald);
-    opacity: 0.2;
-    line-height: 1;
-    margin-bottom: 24px;
-  }
-
-  .step-card h3 {
-    font-family: var(--serif);
-    font-size: 24px;
-    font-weight: 400;
-    margin-bottom: 12px;
-  }
-
-  .step-card p {
-    font-size: 14px;
-    font-weight: 300;
-    line-height: 1.6;
-    color: var(--dim);
-  }
-
-  .step-connector {
-    position: absolute;
-    right: -14px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--emerald);
-    font-size: 20px;
-    z-index: 5;
-    opacity: 0.4;
-  }
-
-  /* ══════════════════════════════════════
-     SLIDE 6 — SCIENCE
-     ══════════════════════════════════════ */
-  .s-science { max-width: 1000px; width: 100%; }
-
-  .framework-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
-    margin-top: 48px;
-  }
-
-  .fw-card {
-    padding: 32px 20px;
-    text-align: center;
-    border: 1px solid var(--faint);
-    border-radius: 16px;
-    transition: all 0.35s;
-  }
-
-  .fw-card:hover {
-    border-color: var(--emerald);
-    background: var(--emerald-glow);
-    transform: translateY(-4px);
-  }
-
-  .fw-icon {
-    font-size: 32px;
-    margin-bottom: 16px;
-  }
-
-  .fw-card h4 {
-    font-family: var(--serif);
-    font-size: 16px;
-    font-weight: 400;
-    margin-bottom: 8px;
-  }
-
-  .fw-card p {
-    font-size: 11px;
-    color: var(--dim);
-    line-height: 1.5;
-  }
-
-  /* ══════════════════════════════════════
-     SLIDE 7 — TRACTION / MARKET
-     ══════════════════════════════════════ */
-  .s-traction { max-width: 1000px; width: 100%; }
-
-  .metrics-row {
-    display: flex;
-    gap: 48px;
-    margin-top: 56px;
-    justify-content: center;
-  }
-
-  .metric {
-    text-align: center;
-  }
-
-  .metric-val {
-    font-family: var(--serif);
-    font-size: clamp(48px, 6vw, 80px);
-    color: var(--emerald);
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-
-  .metric-label {
-    font-size: 14px;
-    font-weight: 300;
-    color: var(--dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .market-bar {
-    margin-top: 64px;
-    display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 24px;
+    max-width: 800px;
   }
 
-  .market-track {
-    flex: 1;
-    height: 4px;
-    background: var(--faint);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
+  .s-reality .line {
+    font-family: var(--heading);
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--fg);
   }
 
-  .market-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--emerald), #34d399);
-    border-radius: 2px;
-    width: 0;
-    transition: width 2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .slide.active .market-fill { width: 65%; }
-
-  .market-text {
-    font-size: 13px;
-    color: var(--dim);
-    white-space: nowrap;
+  .s-reality .line.struck {
+    color: var(--subtle);
+    text-decoration: line-through;
+    text-decoration-color: rgba(239, 68, 68, 0.5);
+    text-decoration-thickness: 3px;
   }
 
   /* ══════════════════════════════════════
-     SLIDE 8 — BUSINESS MODEL
+     SLIDE 4 — DESCRIBE
      ══════════════════════════════════════ */
-  .s-model { max-width: 900px; width: 100%; text-align: center; }
+  .s-step { max-width: 1200px; width: 100%; padding: 60px; }
 
-  .model-visual {
+  .s-step .step-layout {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 56px;
+    gap: 64px;
+    margin-top: 16px;
   }
 
-  .model-node {
-    width: 180px; height: 180px;
-    border-radius: 50%;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    border: 1px solid var(--faint);
-    transition: all 0.4s;
+  .s-step .step-text {
+    flex: 1;
+    min-width: 0;
   }
 
-  .model-node:hover {
-    border-color: var(--emerald);
-    box-shadow: 0 0 40px var(--emerald-glow);
+  .s-step .step-text .headline {
+    font-size: clamp(40px, 5.5vw, 76px);
+    margin-bottom: 24px;
   }
 
-  .model-node .mn-icon { font-size: 32px; margin-bottom: 12px; }
-
-  .model-node h4 {
-    font-family: var(--serif);
-    font-size: 18px; margin-bottom: 4px;
+  .s-step .step-text .body-text {
+    font-size: 21px;
   }
 
-  .model-node p {
-    font-size: 11px; color: var(--dim);
-  }
-
-  .model-arrow {
-    color: var(--emerald);
-    font-size: 28px;
-    opacity: 0.4;
-  }
-
-  .model-bottom {
-    margin-top: 48px;
-    padding: 24px 40px;
-    border: 1px solid var(--faint);
+  .step-visual {
+    flex: 0 0 480px;
+    min-height: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    display: inline-flex;
-    gap: 48px;
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
   }
 
-  .mb-item {
-    text-align: center;
+  /* Describe visual — fake form */
+  .mock-field {
+    margin-bottom: 20px;
   }
 
-  .mb-item .mb-val {
-    font-family: var(--serif);
-    font-size: 28px;
-    color: var(--emerald);
-  }
-
-  .mb-item .mb-label {
+  .mock-field-label {
+    font-family: var(--body);
     font-size: 12px;
-    color: var(--dim);
+    font-weight: 500;
+    color: var(--fg);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .mock-input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 0 14px;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+  }
+
+  .mock-textarea {
+    width: 100%;
+    height: 80px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 10px 14px;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .mock-input.focused {
+    border-color: var(--emerald);
+    box-shadow: 0 0 0 3px var(--emerald-glow);
+  }
+
+  /* Market analysis visual */
+  .mock-market {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .mock-market-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .mock-market-label {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg);
+    flex: 0 0 100px;
+  }
+
+  .mock-market-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #ebebeb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .mock-market-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .mock-market-val {
+    font-family: var(--heading);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+    flex: 0 0 48px;
+    text-align: right;
+  }
+
+  .mock-market-summary {
+    display: flex;
+    gap: 12px;
     margin-top: 4px;
   }
 
-  /* ══════════════════════════════════════
-     SLIDE 9 — DIFFERENTIATORS
-     ══════════════════════════════════════ */
-  .s-diff { max-width: 1000px; width: 100%; }
-
-  .diff-table {
-    margin-top: 48px;
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .diff-table th {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--dim);
-    padding: 16px 24px;
-    text-align: left;
-    border-bottom: 1px solid var(--faint);
-  }
-
-  .diff-table th:last-child {
-    color: var(--emerald);
+  .mock-market-stat {
+    flex: 1;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
     text-align: center;
   }
 
-  .diff-table td {
-    padding: 20px 24px;
-    font-size: 15px;
-    font-weight: 300;
-    color: var(--dim);
-    border-bottom: 1px solid rgba(245,245,240,0.03);
-    vertical-align: middle;
-  }
-
-  .diff-table td:first-child {
-    color: var(--white);
-    font-weight: 500;
-  }
-
-  .diff-table td:last-child {
-    text-align: center;
-    color: var(--emerald);
+  .mock-market-stat-val {
+    font-family: var(--heading);
     font-size: 20px;
+    font-weight: 700;
+    color: var(--emerald);
+  }
+
+  .mock-market-stat-label {
+    font-size: 11px;
+    color: var(--subtle);
+    margin-top: 2px;
+  }
+
+  /* Competitor visual — list */
+  .mock-competitors {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mock-comp-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .mock-comp-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mock-comp-info {
+    flex: 1;
+  }
+
+  .mock-comp-name {
+    font-family: var(--heading);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--fg);
+  }
+
+  .mock-comp-desc {
+    font-size: 12px;
+    color: var(--subtle);
+    margin-top: 2px;
+  }
+
+  .mock-comp-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: var(--emerald-light);
+    color: var(--emerald);
+    white-space: nowrap;
+  }
+
+  /* Survey visual — question cards */
+  .mock-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mock-q-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .mock-q-num {
+    font-family: var(--heading);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--emerald);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .mock-q-text {
+    font-size: 13px;
+    color: var(--fg);
+    line-height: 1.4;
+    font-weight: 400;
+  }
+
+  .mock-q-tag {
+    font-size: 10px;
+    color: var(--subtle);
+    margin-top: 4px;
+  }
+
+  /* ICP visual — match cards */
+  .mock-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mock-match-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .mock-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--heading);
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .mock-match-info {
+    flex: 1;
+  }
+
+  .mock-match-name {
+    font-family: var(--heading);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--fg);
+  }
+
+  .mock-match-detail {
+    font-size: 12px;
+    color: var(--subtle);
+    margin-top: 2px;
+  }
+
+  .mock-match-pct {
+    font-family: var(--heading);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--emerald);
   }
 
   /* ══════════════════════════════════════
-     SLIDE 10 — ASK
+     SLIDE 8 — CLARITY
      ══════════════════════════════════════ */
-  .s-ask { text-align: center; position: relative; }
+  .s-clarity { text-align: center; }
 
-  .s-ask::before {
-    content: '';
-    position: absolute;
-    width: 800px; height: 800px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 60%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: blur(80px);
-    animation: pulseGlow 4s ease-in-out infinite;
+  .s-clarity .headline {
+    font-size: clamp(40px, 5.5vw, 72px);
+    margin-bottom: 48px;
   }
 
-  .s-ask .headline {
-    font-size: clamp(40px, 6vw, 84px);
-    position: relative;
-  }
-
-  .ask-details {
+  .clarity-row {
     display: flex;
-    gap: 56px;
-    margin-top: 56px;
-    position: relative;
+    gap: 24px;
+    max-width: 900px;
   }
 
-  .ask-item {
-    text-align: center;
+  .clarity-card {
+    flex: 1;
+    padding: 36px 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    text-align: left;
+    transition: all 0.3s var(--ease);
   }
 
-  .ask-item .ai-val {
-    font-family: var(--serif);
-    font-size: 36px;
-    color: var(--emerald);
+  .clarity-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .clarity-card .cc-title {
+    font-family: var(--heading);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fg);
     margin-bottom: 8px;
   }
 
-  .ask-item .ai-label {
-    font-size: 13px;
+  .clarity-card .cc-desc {
+    font-size: 14px;
     font-weight: 300;
-    color: var(--dim);
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .clarity-card .cc-value {
+    font-family: var(--heading);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--emerald);
+    margin-bottom: 12px;
+    line-height: 1;
   }
 
   /* ══════════════════════════════════════
-     SLIDE 11 — CLOSE
+     SLIDE 9 — CLOSE
      ══════════════════════════════════════ */
-  .s-close { text-align: center; position: relative; }
-
-  .s-close::before {
-    content: '';
-    position: absolute;
-    width: 500px; height: 500px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: blur(60px);
-  }
+  .s-close { text-align: center; }
 
   .s-close .headline {
-    font-size: clamp(48px, 7vw, 100px);
-    position: relative;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 700;
   }
 
-  .close-url {
-    font-family: var(--sans);
+  .s-close .close-url {
+    font-family: var(--body);
     font-size: 16px;
     font-weight: 500;
     letter-spacing: 4px;
     color: var(--emerald);
-    margin-top: 32px;
-    position: relative;
+    margin-top: 40px;
   }
 
-  .close-sub {
-    font-size: 16px;
+  .s-close .close-sub {
+    font-size: 14px;
     font-weight: 300;
-    color: var(--dim);
-    margin-top: 16px;
-    position: relative;
+    color: var(--subtle);
+    margin-top: 12px;
+  }
+
+  /* ── Step Number ── */
+  .step-number {
+    font-family: var(--heading);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--emerald);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
   }
 
   /* ── Auto-play controls ── */
   .auto-play-btn {
     position: fixed;
-    top: 24px; right: 32px;
+    top: 20px; right: 28px;
     z-index: 100;
-    padding: 8px 20px;
-    border-radius: 40px;
-    border: 1px solid var(--faint);
-    background: rgba(10,10,10,0.8);
-    backdrop-filter: blur(12px);
-    color: var(--dim);
-    font-family: var(--sans);
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    color: var(--muted);
+    font-family: var(--body);
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 2px;
@@ -712,7 +642,17 @@
   .auto-play-btn.playing {
     border-color: var(--emerald);
     color: var(--emerald);
-    box-shadow: 0 0 20px var(--emerald-glow);
+  }
+
+  /* ── Visual label in step cards ── */
+  .visual-label {
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 16px;
   }
 </style>
 </head>
@@ -722,266 +662,301 @@
 
   <!-- SLIDE 1: TITLE -->
   <div class="slide s-title active">
-    <div class="logo-mark au">V</div>
-    <h1 class="headline au1"><span class="em">Validated</span></h1>
-    <p class="tagline au2">Validate your idea before you build</p>
-    <div class="slide-progress"></div>
+    <div class="logo au">V</div>
+    <h1 class="headline au1">Validated</h1>
+    <p class="sub au2">Know if your idea works before you build it</p>
   </div>
 
   <!-- SLIDE 2: PROBLEM -->
   <div class="slide s-problem">
-    <p class="label au">The problem</p>
-    <div class="rule au1"></div>
-    <div class="big-stat au2">90%</div>
-    <p class="stat-context au3">of startups fail.<br>The #1 reason? Building something <span class="em">nobody wants.</span></p>
-    <div class="slide-progress"></div>
-  </div>
-
-  <!-- SLIDE 3: WHY -->
-  <div class="slide s-why">
-    <p class="label au">The insight</p>
-    <div class="rule au1"></div>
-    <blockquote class="why-quote au2">
-      Founders don't fail because they can't build.<br>
-      They fail because they <span class="em">never asked</span> the right people<br>
-      the right questions.
-    </blockquote>
-    <p class="why-attribution au3">— Every failed post-mortem, ever</p>
-    <div class="slide-progress"></div>
-  </div>
-
-  <!-- SLIDE 4: SOLUTION -->
-  <div class="slide s-solution">
-    <p class="label au">The solution</p>
-    <div class="rule au1" style="margin: 32px auto;"></div>
-    <h2 class="headline au2">AI-powered surveys.<br><span class="em">Real peer feedback.</span><br>In 72 hours.</h2>
-    <p class="body-text au3" style="margin-top: 32px; text-align: center;">
-      Validated generates research-grade surveys from your idea description,
-      matches you with relevant founders, and delivers a validation score
-      grounded in proven frameworks.
-    </p>
-    <div class="slide-progress"></div>
-  </div>
-
-  <!-- SLIDE 5: HOW IT WORKS -->
-  <div class="slide s-how">
-    <p class="label au">How it works</p>
-    <div class="rule au1"></div>
-    <div class="steps-row">
-      <div class="step-card au2">
-        <div class="step-num">1</div>
-        <h3>Describe</h3>
-        <p>Tell us your idea, your ICP, and what you want to validate.</p>
-        <span class="step-connector">→</span>
-      </div>
-      <div class="step-card au3">
-        <div class="step-num">2</div>
-        <h3>Generate</h3>
-        <p>AI creates 8–12 framework-based questions. Bias-checked automatically.</p>
-        <span class="step-connector">→</span>
-      </div>
-      <div class="step-card au4">
-        <div class="step-num">3</div>
-        <h3>Collect</h3>
-        <p>Share with your network or our founder community. Real responses, not guesses.</p>
-        <span class="step-connector">→</span>
-      </div>
-      <div class="step-card au5">
-        <div class="step-num">4</div>
-        <h3>Validate</h3>
-        <p>Get a 0–100 validation score, key themes, red flags, and next steps.</p>
-      </div>
-    </div>
-    <div class="slide-progress"></div>
-  </div>
-
-  <!-- SLIDE 6: SCIENCE -->
-  <div class="slide s-science">
-    <p class="label au">Built on science, not vibes</p>
-    <div class="rule au1"></div>
-    <h2 class="headline au2" style="font-size: clamp(28px, 3.5vw, 48px);">
-      Five proven research frameworks<br>power every survey
+    <h2 class="headline au">
+      You have an idea.<br>
+      <span class="line2">You have no idea if anyone wants it.</span>
     </h2>
-    <div class="framework-grid">
-      <div class="fw-card au3">
-        <div class="fw-icon">🎯</div>
-        <h4>Mom Test</h4>
-        <p>Past behavior,<br>not hypotheticals</p>
-      </div>
-      <div class="fw-card au4">
-        <div class="fw-icon">⚡</div>
-        <h4>JTBD</h4>
-        <p>Jobs, context,<br>desired outcomes</p>
-      </div>
-      <div class="fw-card au5">
-        <div class="fw-icon">🔬</div>
-        <h4>Problem Fit</h4>
-        <p>Validate problem<br>before solution</p>
-      </div>
-      <div class="fw-card au6">
-        <div class="fw-icon">💰</div>
-        <h4>WTP</h4>
-        <p>Van Westendorp<br>price sensitivity</p>
-      </div>
-      <div class="fw-card au7">
-        <div class="fw-icon">📈</div>
-        <h4>PMF Test</h4>
-        <p>Sean Ellis signal<br>for market fit</p>
-      </div>
-    </div>
-    <div class="slide-progress"></div>
   </div>
 
-  <!-- SLIDE 7: TRACTION -->
-  <div class="slide s-traction">
-    <p class="label au">Traction & market</p>
-    <div class="rule au1"></div>
-    <h2 class="headline au2" style="font-size: clamp(28px, 3.5vw, 48px);">
-      Launching with 50+ founders from<br><span class="em">Networks School</span>
-    </h2>
-    <div class="metrics-row">
-      <div class="metric au3">
-        <div class="metric-val">50+</div>
-        <div class="metric-label">Launch cohort</div>
-      </div>
-      <div class="metric au4">
-        <div class="metric-val">72h</div>
-        <div class="metric-label">Idea to insights</div>
-      </div>
-      <div class="metric au5">
-        <div class="metric-val">0→1</div>
-        <div class="metric-label">Free beta</div>
-      </div>
+  <!-- SLIDE 3: OPTION 1 -->
+  <div class="slide s-reality">
+    <div class="two-lines">
+      <span class="line au">Ask your friends</span>
     </div>
-    <div class="market-bar au6">
-      <span class="market-text">Validation tools market growth</span>
-      <div class="market-track">
-        <div class="market-fill"></div>
-      </div>
-      <span class="market-text" style="color: var(--emerald);">$4.2B by 2028</span>
-    </div>
-    <div class="slide-progress"></div>
   </div>
 
-  <!-- SLIDE 8: BUSINESS MODEL -->
-  <div class="slide s-model">
-    <p class="label au">Business model</p>
-    <div class="rule au1" style="margin: 32px auto;"></div>
-    <h2 class="headline au2" style="font-size: clamp(28px, 3vw, 44px);">
-      Points economy + premium tiers
-    </h2>
-    <div class="model-visual">
-      <div class="model-node au3">
-        <div class="mn-icon">📝</div>
-        <h4>Answer</h4>
-        <p>Earn 1 point</p>
-      </div>
-      <div class="model-arrow au4">⇄</div>
-      <div class="model-node au5">
-        <div class="mn-icon">🚀</div>
-        <h4>Publish</h4>
-        <p>Spend 1 point</p>
-      </div>
+  <!-- SLIDE 4: OPTION 2 -->
+  <div class="slide s-reality">
+    <div class="two-lines">
+      <span class="line" style="opacity: 0.3;">Ask your friends</span>
+      <span class="line au">Send a Google Form</span>
     </div>
-    <div class="model-bottom au6">
-      <div class="mb-item">
-        <div class="mb-val">Free</div>
-        <div class="mb-label">Core exchange</div>
-      </div>
-      <div class="mb-item">
-        <div class="mb-val">Pro</div>
-        <div class="mb-label">Priority matching</div>
-      </div>
-      <div class="mb-item">
-        <div class="mb-val">Teams</div>
-        <div class="mb-label">Org dashboards</div>
-      </div>
-    </div>
-    <div class="slide-progress"></div>
   </div>
 
-  <!-- SLIDE 9: DIFFERENTIATORS -->
-  <div class="slide s-diff">
-    <p class="label au">Why us</p>
-    <div class="rule au1"></div>
-    <table class="diff-table">
-      <thead>
-        <tr class="au2">
-          <th></th>
-          <th>Surveys alone</th>
-          <th>Talking to users</th>
-          <th>Validated</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="au3">
-          <td>Research framework</td>
-          <td>DIY / none</td>
-          <td>Unstructured</td>
-          <td>✓</td>
-        </tr>
-        <tr class="au4">
-          <td>Bias detection</td>
-          <td>None</td>
-          <td>None</td>
-          <td>✓</td>
-        </tr>
-        <tr class="au5">
-          <td>Qualified respondents</td>
-          <td>Random</td>
-          <td>Small circle</td>
-          <td>✓</td>
-        </tr>
-        <tr class="au6">
-          <td>Time to insight</td>
-          <td>Weeks</td>
-          <td>Months</td>
-          <td>✓</td>
-        </tr>
-        <tr class="au7">
-          <td>Validation score</td>
-          <td>—</td>
-          <td>—</td>
-          <td>✓</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="slide-progress"></div>
+  <!-- SLIDE 5: OPTION 3 -->
+  <div class="slide s-reality">
+    <div class="two-lines">
+      <span class="line" style="opacity: 0.3;">Ask your friends</span>
+      <span class="line" style="opacity: 0.3;">Send a Google Form</span>
+      <span class="line au">Build it and pray</span>
+    </div>
   </div>
 
-  <!-- SLIDE 10: ASK -->
-  <div class="slide s-ask">
-    <p class="label au">The ask</p>
-    <div class="rule au1" style="margin: 32px auto;"></div>
-    <h2 class="headline au2">Join our <span class="em">free beta</span></h2>
-    <p class="body-text au3" style="text-align: center; margin-top: 24px;">
-      We're onboarding the first cohort of founders from Networks School.
-      Validate your next idea before writing a single line of code.
-    </p>
-    <div class="ask-details au4">
-      <div class="ask-item">
-        <div class="ai-val">Free</div>
-        <div class="ai-label">For NS founders</div>
+  <!-- SLIDE 6: THE ANSWER -->
+  <div class="slide s-reality">
+    <div class="two-lines">
+      <span class="line struck au" style="opacity: 0.2;">Ask your friends</span>
+      <span class="line struck au1" style="opacity: 0.2;">Send a Google Form</span>
+      <span class="line struck au2" style="opacity: 0.2;">Build it and pray</span>
+      <span class="line au3" style="color: var(--emerald); font-weight: 700; font-size: clamp(36px, 5vw, 64px);">
+        Ask the right people the right questions
+      </span>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: DESCRIBE -->
+  <div class="slide s-step">
+    <div class="step-layout">
+      <div class="step-text">
+        <div class="step-number au">1</div>
+        <h2 class="headline au1">Describe<br>your idea</h2>
+        <p class="body-text au2">
+          What you're building, who it's for, what problem it solves. That's it.
+        </p>
       </div>
-      <div class="ask-item">
-        <div class="ai-val">Q2 2026</div>
-        <div class="ai-label">Beta launch</div>
-      </div>
-      <div class="ask-item">
-        <div class="ai-val">50</div>
-        <div class="ai-label">Spots available</div>
+      <div class="step-visual au3">
+        <div class="visual-label">Project setup</div>
+        <div class="mock-field">
+          <div class="mock-field-label">Idea</div>
+          <div class="mock-input focused">A platform for founders to validate ideas...</div>
+        </div>
+        <div class="mock-field">
+          <div class="mock-field-label">Target customer</div>
+          <div class="mock-input">Early-stage founders, pre-revenue</div>
+        </div>
+        <div class="mock-field" style="margin-bottom: 0;">
+          <div class="mock-field-label">Problem</div>
+          <div class="mock-input">Building products nobody wants</div>
+        </div>
       </div>
     </div>
-    <div class="slide-progress"></div>
   </div>
 
-  <!-- SLIDE 11: CLOSE -->
+  <!-- SLIDE 5: MARKET ANALYSIS -->
+  <div class="slide s-step">
+    <div class="step-layout">
+      <div class="step-text">
+        <div class="step-number au">2</div>
+        <h2 class="headline au1">We analyze<br>your <span class="em">market</span></h2>
+        <p class="body-text au2">
+          AI researches your space. Market size, trends, and where the opportunity lives.
+        </p>
+      </div>
+      <div class="step-visual au3">
+        <div class="visual-label">Market research</div>
+        <div class="mock-market">
+          <div class="mock-market-item">
+            <div class="mock-market-label">TAM</div>
+            <div class="mock-market-bar-track"><div class="mock-market-bar-fill" style="width: 85%; background: var(--emerald);"></div></div>
+            <div class="mock-market-val">$4.2B</div>
+          </div>
+          <div class="mock-market-item">
+            <div class="mock-market-label">SAM</div>
+            <div class="mock-market-bar-track"><div class="mock-market-bar-fill" style="width: 45%; background: var(--emerald); opacity: 0.7;"></div></div>
+            <div class="mock-market-val">$890M</div>
+          </div>
+          <div class="mock-market-item">
+            <div class="mock-market-label">SOM</div>
+            <div class="mock-market-bar-track"><div class="mock-market-bar-fill" style="width: 15%; background: var(--emerald); opacity: 0.5;"></div></div>
+            <div class="mock-market-val">$120M</div>
+          </div>
+          <div class="mock-market-summary">
+            <div class="mock-market-stat">
+              <div class="mock-market-stat-val">23%</div>
+              <div class="mock-market-stat-label">CAGR</div>
+            </div>
+            <div class="mock-market-stat">
+              <div class="mock-market-stat-val">Early</div>
+              <div class="mock-market-stat-label">Stage</div>
+            </div>
+            <div class="mock-market-stat">
+              <div class="mock-market-stat-val">High</div>
+              <div class="mock-market-stat-label">Demand</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: COMPETITORS -->
+  <div class="slide s-step">
+    <div class="step-layout">
+      <div class="step-text">
+        <div class="step-number au">3</div>
+        <h2 class="headline au1">We find your<br><span class="em">competitors</span></h2>
+        <p class="body-text au2">
+          See who else is solving this and where the gaps are.
+        </p>
+      </div>
+      <div class="step-visual au3">
+        <div class="visual-label">Competitor landscape</div>
+        <div class="mock-competitors">
+          <div class="mock-comp-item">
+            <div class="mock-comp-dot" style="background: #6366f1;"></div>
+            <div class="mock-comp-info">
+              <div class="mock-comp-name">SurveyMonkey</div>
+              <div class="mock-comp-desc">Generic survey tool</div>
+            </div>
+            <div class="mock-comp-badge" style="background: rgba(245,158,11,0.08); color: #f59e0b;">Indirect</div>
+          </div>
+          <div class="mock-comp-item">
+            <div class="mock-comp-dot" style="background: #f59e0b;"></div>
+            <div class="mock-comp-info">
+              <div class="mock-comp-name">Wynter</div>
+              <div class="mock-comp-desc">B2B message testing</div>
+            </div>
+            <div class="mock-comp-badge">Direct</div>
+          </div>
+          <div class="mock-comp-item">
+            <div class="mock-comp-dot" style="background: #ef4444;"></div>
+            <div class="mock-comp-info">
+              <div class="mock-comp-name">UserTesting</div>
+              <div class="mock-comp-desc">UX research platform</div>
+            </div>
+            <div class="mock-comp-badge" style="background: rgba(245,158,11,0.08); color: #f59e0b;">Indirect</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: SURVEY -->
+  <div class="slide s-step">
+    <div class="step-layout">
+      <div class="step-text">
+        <div class="step-number au">4</div>
+        <h2 class="headline au1">We build<br>your <span class="em">survey</span></h2>
+        <p class="body-text au2">
+          Research-backed questions designed to eliminate bias. Not opinion polls. Validation instruments.
+        </p>
+      </div>
+      <div class="step-visual au3">
+        <div class="visual-label">Generated questions</div>
+        <div class="mock-questions">
+          <div class="mock-q-item">
+            <div class="mock-q-num">01</div>
+            <div>
+              <div class="mock-q-text">When was the last time you tried to validate a business idea?</div>
+              <div class="mock-q-tag">Mom Test -- past behavior</div>
+            </div>
+          </div>
+          <div class="mock-q-item">
+            <div class="mock-q-num">02</div>
+            <div>
+              <div class="mock-q-text">What were you trying to achieve when you did that?</div>
+              <div class="mock-q-tag">JTBD -- desired outcome</div>
+            </div>
+          </div>
+          <div class="mock-q-item">
+            <div class="mock-q-num">03</div>
+            <div>
+              <div class="mock-q-text">How much time or money did you spend on that process?</div>
+              <div class="mock-q-tag">WTP -- price sensitivity</div>
+            </div>
+          </div>
+          <div class="mock-q-item">
+            <div class="mock-q-num">04</div>
+            <div>
+              <div class="mock-q-text">What was the most frustrating part?</div>
+              <div class="mock-q-tag">Problem Fit -- pain point</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: ICP MATCHING -->
+  <div class="slide s-step">
+    <div class="step-layout">
+      <div class="step-text">
+        <div class="step-number au">5</div>
+        <h2 class="headline au1">We match<br>your <span class="em">ICP</span></h2>
+        <p class="body-text au2">
+          Your survey reaches people who fit your target customer. Not random strangers. Not your mom.
+        </p>
+      </div>
+      <div class="step-visual au3">
+        <div class="visual-label">Respondent matching</div>
+        <div class="mock-matches">
+          <div class="mock-match-item">
+            <div class="mock-avatar" style="background: #6366f1;">SK</div>
+            <div class="mock-match-info">
+              <div class="mock-match-name">Sarah K.</div>
+              <div class="mock-match-detail">SaaS founder, pre-seed</div>
+            </div>
+            <div class="mock-match-pct">94%</div>
+          </div>
+          <div class="mock-match-item">
+            <div class="mock-avatar" style="background: var(--emerald);">MR</div>
+            <div class="mock-match-info">
+              <div class="mock-match-name">Marcus R.</div>
+              <div class="mock-match-detail">B2B marketplace, bootstrapped</div>
+            </div>
+            <div class="mock-match-pct">91%</div>
+          </div>
+          <div class="mock-match-item">
+            <div class="mock-avatar" style="background: #f59e0b;">AJ</div>
+            <div class="mock-match-info">
+              <div class="mock-match-name">Aisha J.</div>
+              <div class="mock-match-detail">Dev tools, seed stage</div>
+            </div>
+            <div class="mock-match-pct">87%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: CLARITY -->
+  <div class="slide s-clarity">
+    <p class="label au">What you get</p>
+    <h2 class="headline au1">Clarity, not opinions</h2>
+    <div class="clarity-row">
+      <div class="clarity-card au2">
+        <div class="cc-value">73</div>
+        <div class="cc-title">Validation score</div>
+        <div class="cc-desc">A single number that tells you where you stand. Based on real responses, not gut feel.</div>
+      </div>
+      <div class="clarity-card au3">
+        <div class="cc-title">Themes</div>
+        <div class="cc-desc" style="margin-top: 8px;">
+          Patterns across responses. What people care about, what they don't, and what surprised them.
+        </div>
+        <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span style="font-size: 12px; padding: 4px 10px; background: var(--emerald-light); color: var(--emerald); border-radius: 6px; font-weight: 500;">Pricing concern</span>
+          <span style="font-size: 12px; padding: 4px 10px; background: var(--emerald-light); color: var(--emerald); border-radius: 6px; font-weight: 500;">Strong problem fit</span>
+          <span style="font-size: 12px; padding: 4px 10px; background: rgba(245,158,11,0.08); color: #f59e0b; border-radius: 6px; font-weight: 500;">Unclear differentiator</span>
+        </div>
+      </div>
+      <div class="clarity-card au4">
+        <div class="cc-title">Next steps</div>
+        <div class="cc-desc" style="margin-top: 8px;">
+          Specific actions based on what the data shows. Not generic advice. Your next move.
+        </div>
+        <div style="margin-top: 16px; font-size: 13px; color: var(--fg); line-height: 1.8;">
+          <div>1. Sharpen your positioning</div>
+          <div>2. Test pricing with a landing page</div>
+          <div>3. Interview top 3 respondents</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: CLOSE -->
   <div class="slide s-close">
-    <div class="logo-mark au" style="margin-bottom: 32px;">V</div>
-    <h2 class="headline au1">Stop guessing.<br><span class="em">Start validating.</span></h2>
+    <div class="logo au" style="width: 56px; height: 56px; border: 2px solid var(--emerald); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin: 0 auto 40px; font-family: var(--heading); font-size: 28px; font-weight: 600; color: var(--emerald);">V</div>
+    <h2 class="headline au1">Stop guessing.<br><span class="em">Start asking.</span></h2>
     <p class="close-url au2">VALIDATED.APP</p>
     <p class="close-sub au3">Built by Mantaray Digital</p>
-    <div class="slide-progress"></div>
   </div>
 
 </div>
@@ -989,20 +964,20 @@
 <!-- BOTTOM BAR -->
 <div class="bottom-bar">
   <div class="dots" id="dots"></div>
-  <div class="slide-counter" id="counter">01 / 11</div>
+  <div class="slide-counter" id="counter">01 / 13</div>
 </div>
 
-<!-- TIMER BAR -->
-<div class="timer-bar" id="timer-bar"></div>
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="progress-bar"></div>
 
 <!-- AUTO-PLAY -->
 <button class="auto-play-btn" id="autoplay" onclick="toggleAutoPlay()">
-  ▶ Auto
+  PLAY
 </button>
 
 <script>
-  const TOTAL = 11;
-  const AUTO_INTERVAL = 16400; // ~16s per slide = ~3 min total
+  const TOTAL = 13;
+  const AUTO_INTERVAL = 15000;
   let current = 0;
   let autoTimer = null;
   let isPlaying = false;
@@ -1010,10 +985,9 @@
   const slides = document.querySelectorAll('.slide');
   const dotsEl = document.getElementById('dots');
   const counterEl = document.getElementById('counter');
-  const timerBar = document.getElementById('timer-bar');
+  const progressBar = document.getElementById('progress-bar');
   const autoBtn = document.getElementById('autoplay');
 
-  // Build dots
   for (let i = 0; i < TOTAL; i++) {
     const d = document.createElement('button');
     d.className = 'dot' + (i === 0 ? ' active' : '');
@@ -1030,11 +1004,8 @@
     current = n;
     counterEl.textContent =
       String(current + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+    progressBar.style.width = ((current + 1) / TOTAL * 100) + '%';
 
-    // Update timer bar
-    timerBar.style.width = ((current + 1) / TOTAL * 100) + '%';
-
-    // Reset auto-play timer if playing
     if (isPlaying) {
       clearInterval(autoTimer);
       if (current < TOTAL - 1) {
@@ -1046,17 +1017,13 @@
   }
 
   function toggleAutoPlay() {
-    if (isPlaying) {
-      stopAutoPlay();
-    } else {
-      startAutoPlay();
-    }
+    isPlaying ? stopAutoPlay() : startAutoPlay();
   }
 
   function startAutoPlay() {
     isPlaying = true;
     autoBtn.classList.add('playing');
-    autoBtn.textContent = '⏸ Auto';
+    autoBtn.textContent = 'PAUSE';
     autoTimer = setInterval(() => {
       if (current < TOTAL - 1) {
         goSlide(current + 1);
@@ -1069,11 +1036,10 @@
   function stopAutoPlay() {
     isPlaying = false;
     autoBtn.classList.remove('playing');
-    autoBtn.textContent = '▶ Auto';
+    autoBtn.textContent = 'PLAY';
     clearInterval(autoTimer);
   }
 
-  // Keyboard
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
       e.preventDefault();
